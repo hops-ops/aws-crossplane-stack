@@ -1,0 +1,40 @@
+apiVersion: meta.dev.upbound.io/v2alpha1
+kind: Project
+metadata:
+  name: stack-aws-crossplane
+spec:
+  dependsOn:
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Function
+    package: xpkg.crossplane.io/crossplane-contrib/function-auto-ready
+    version: '>=v0.6.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Configuration
+    package: ghcr.io/hops-ops/aws-pod-identity
+    version: '>=v0.5.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.crossplane.io/crossplane-contrib/provider-family-aws
+    version: '>=v2.3.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.crossplane.io/crossplane-contrib/provider-kubernetes
+    version: '>=v0.16.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.crossplane.io/crossplane-contrib/provider-helm
+    version: '>=v0.21.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.crossplane.io/crossplane-contrib/provider-upjet-github
+    version: '>=v0.2.0'
+  description: Installs Crossplane via Helm and configures AWS (PodIdentity), Kubernetes,
+    Helm, and GitHub providers.
+  license: Apache-2.0
+  maintainer: Patrick Lee Scott <pat@patscott.io>
+  readme: |
+    # stack-aws-crossplane
+    Installs Crossplane via Helm and configures AWS (PodIdentity), Kubernetes, Helm,
+    and GitHub providers with toggle flags.
+  repository: ghcr.io/hops-ops/stack-aws-crossplane
+  source: github.com/hops-ops/stack-aws-crossplane

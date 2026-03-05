@@ -1,0 +1,31 @@
+# code: language=yaml
+{{- $obs := $state.observed }}
+
+{{- $cpReady := $obs.crossplane.ready | default false }}
+{{- $awsReady := $obs.awsProvider.ready | default false }}
+{{- $k8sReady := $obs.k8sProvider.ready | default false }}
+{{- $helmReady := $obs.helmProvider.ready | default false }}
+{{- $ghReady := $obs.githubProvider.ready | default false }}
+
+{{- /* Overall readiness is managed by function-auto-ready */ -}}
+{{- $state = set $state "status" (dict
+  "ready" false
+  "crossplane" (dict
+    "ready" $cpReady
+    "namespace" $state.crossplane.namespace
+  )
+  "providers" (dict
+    "aws" (dict
+      "ready" $awsReady
+    )
+    "kubernetes" (dict
+      "ready" $k8sReady
+    )
+    "helm" (dict
+      "ready" $helmReady
+    )
+    "github" (dict
+      "ready" $ghReady
+    )
+  )
+) }}

@@ -1,0 +1,170 @@
+# code: language=yaml
+{{- $xr := getCompositeResource . }}
+{{- $metadata := $xr.metadata | default dict }}
+{{- $spec := $xr.spec | default dict }}
+
+{{- $name := $metadata.name | default "crossplane-stack" }}
+{{- $clusterName := $spec.clusterName | default $name }}
+{{- $managementPolicies := $spec.managementPolicies | default (list "*") }}
+
+{{- $defaultLabels := dict
+  "hops.ops.com.ai/managed" "true"
+  (printf "hops.ops.com.ai/%s" (lower $xr.kind)) $name
+}}
+{{- $labels := merge $defaultLabels ($spec.labels | default dict) }}
+
+{{- $defaultTags := dict
+  "hops.ops.com.ai/managed" "true"
+  (printf "hops.ops.com.ai/%s" (lower $xr.kind)) $name
+}}
+{{- $tags := merge $defaultTags ($spec.tags | default dict) }}
+
+{{- /* AWS config */ -}}
+{{- $aws := $spec.aws | default dict }}
+{{- $awsAccountId := $aws.accountId | default "" }}
+{{- $awsClusterName := $aws.clusterName | default $clusterName }}
+{{- $awsRegion := $aws.region | default "us-east-1" }}
+{{- $awsPermissionsBoundary := $aws.permissionsBoundary | default "" }}
+{{- $awsRolePrefix := $aws.rolePrefix | default "" }}
+{{- $awsTags := merge (dict) $tags ($aws.tags | default dict) }}
+
+{{- /* Crossplane config */ -}}
+{{- $crossplane := $spec.install | default dict }}
+{{- $cpNamespace := $crossplane.namespace | default "crossplane-system" }}
+{{- $cpReleaseName := $crossplane.name | default "crossplane" }}
+{{- $cpValues := $crossplane.values | default dict }}
+{{- $cpOverrideAllValues := $crossplane.overrideAllValues | default dict }}
+
+{{- /* Provider toggles */ -}}
+{{- $providers := $spec.providers | default dict }}
+
+{{- /* AWS provider */ -}}
+{{- $provAws := $providers.aws | default dict }}
+{{- $awsEnabled := true }}
+{{- if hasKey $provAws "enabled" }}
+  {{- $awsEnabled = $provAws.enabled }}
+{{- end }}
+{{- $awsProviderConfigName := $provAws.providerConfigName | default $clusterName }}
+{{- $awsRuntimeConfig := $provAws.runtimeConfig | default dict }}
+{{- $awsProviders := $provAws.providers | default dict }}
+
+{{- /* Kubernetes provider */ -}}
+{{- $provK8s := $providers.kubernetes | default dict }}
+{{- $k8sEnabled := true }}
+{{- if hasKey $provK8s "enabled" }}
+  {{- $k8sEnabled = $provK8s.enabled }}
+{{- end }}
+{{- $k8sProviderConfigName := $provK8s.providerConfigName | default $clusterName }}
+{{- $k8sRuntimeConfig := $provK8s.runtimeConfig | default dict }}
+
+{{- /* Helm provider */ -}}
+{{- $provHelm := $providers.helm | default dict }}
+{{- $helmEnabled := true }}
+{{- if hasKey $provHelm "enabled" }}
+  {{- $helmEnabled = $provHelm.enabled }}
+{{- end }}
+{{- $helmProviderConfigName := $provHelm.providerConfigName | default $clusterName }}
+{{- $helmRuntimeConfig := $provHelm.runtimeConfig | default dict }}
+
+{{- /* GitHub provider */ -}}
+{{- $provGithub := $providers.github | default dict }}
+{{- $githubEnabled := false }}
+{{- if hasKey $provGithub "enabled" }}
+  {{- $githubEnabled = $provGithub.enabled }}
+{{- end }}
+{{- $githubProviderConfigName := $provGithub.providerConfigName | default "github" }}
+{{- $githubRuntimeConfig := $provGithub.runtimeConfig | default dict }}
+{{- $githubOrg := $provGithub.githubOrg | default "" }}
+{{- $githubSecretName := $provGithub.secretName | default "" }}
+
+{{- /* NodePool */ -}}
+{{- $nodePoolSpec := $spec.nodePool | default dict }}
+{{- $nodePoolEnabled := false }}
+{{- if hasKey $nodePoolSpec "enabled" }}
+  {{- $nodePoolEnabled = $nodePoolSpec.enabled }}
+{{- end }}
+{{- $nodePoolName := printf "%s-crossplane" $clusterName }}
+{{- $nodePoolNodeClassName := $nodePoolSpec.nodeClassName | default "" }}
+{{- $nodePoolLimits := $nodePoolSpec.limits | default (dict "nodes" 10) }}
+{{- $nodePoolRequirements := $nodePoolSpec.requirements | default (list
+  (dict "key" "eks.amazonaws.com/instance-family" "operator" "In" "values" (list "m5" "m6i" "m7i" "c5" "c6i" "c7i"))
+  (dict "key" "kubernetes.io/arch" "operator" "In" "values" (list "amd64"))
+  (dict "key" "karpenter.sh/capacity-type" "operator" "In" "values" (list "on-demand"))
+) }}
+{{- $nodePoolDisruption := $nodePoolSpec.disruption | default (dict "consolidationPolicy" "WhenEmptyOrUnderutilized" "consolidateAfter" "60s") }}
+
+{{- /* Functions */ -}}
+{{- $functions := $spec.functions | default dict }}
+{{- $fnAutoReady := true }}
+{{- if hasKey $functions "autoReady" }}
+  {{- $fnAutoReady = $functions.autoReady }}
+{{- end }}
+
+{{- /* PodIdentity - shared SA name for all AWS provider pods */ -}}
+{{- $podIdentitySaName := printf "%s-crossplane-aws" $clusterName }}
+{{- $podIdentitySaNamespace := $cpNamespace }}
+
+{{- /* Build $state */ -}}
+{{- $state := dict
+  "name" $name
+  "clusterName" $clusterName
+  "managementPolicies" $managementPolicies
+  "labels" $labels
+  "tags" $tags
+  "aws" (dict
+    "accountId" $awsAccountId
+    "clusterName" $awsClusterName
+    "region" $awsRegion
+    "permissionsBoundary" $awsPermissionsBoundary
+    "rolePrefix" $awsRolePrefix
+    "tags" $awsTags
+  )
+  "crossplane" (dict
+    "namespace" $cpNamespace
+    "releaseName" $cpReleaseName
+    "values" $cpValues
+    "overrideAllValues" $cpOverrideAllValues
+  )
+  "providers" (dict
+    "aws" (dict
+      "enabled" $awsEnabled
+      "providerConfigName" $awsProviderConfigName
+      "runtimeConfig" $awsRuntimeConfig
+      "providers" $awsProviders
+    )
+    "kubernetes" (dict
+      "enabled" $k8sEnabled
+      "providerConfigName" $k8sProviderConfigName
+      "runtimeConfig" $k8sRuntimeConfig
+    )
+    "helm" (dict
+      "enabled" $helmEnabled
+      "providerConfigName" $helmProviderConfigName
+      "runtimeConfig" $helmRuntimeConfig
+    )
+    "github" (dict
+      "enabled" $githubEnabled
+      "providerConfigName" $githubProviderConfigName
+      "runtimeConfig" $githubRuntimeConfig
+      "githubOrg" $githubOrg
+      "secretName" $githubSecretName
+    )
+  )
+  "functions" (dict
+    "autoReady" $fnAutoReady
+  )
+  "nodePool" (dict
+    "enabled" $nodePoolEnabled
+    "name" $nodePoolName
+    "nodeClassName" $nodePoolNodeClassName
+    "limits" $nodePoolLimits
+    "requirements" $nodePoolRequirements
+    "disruption" $nodePoolDisruption
+  )
+  "podIdentity" (dict
+    "saName" $podIdentitySaName
+    "saNamespace" $podIdentitySaNamespace
+  )
+  "observed" (dict)
+  "status" (dict)
+}}

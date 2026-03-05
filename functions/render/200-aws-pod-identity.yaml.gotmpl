@@ -1,0 +1,60 @@
+# code: language=yaml
+#
+# AWS Pod Identity for Crossplane AWS provider
+#
+
+{{- if $state.providers.aws.enabled }}
+---
+apiVersion: aws.hops.ops.com.ai/v1alpha1
+kind: PodIdentity
+metadata:
+  name: {{ $state.name }}-pod-identity
+  annotations:
+    {{ setResourceNameAnnotation "pod-identity" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  clusterName: {{ $state.aws.clusterName }}
+  region: {{ $state.aws.region }}
+  providerConfigRef:
+    name: {{ $state.providers.aws.providerConfigName }}
+    kind: ProviderConfig
+  {{- if $state.aws.rolePrefix }}
+  rolePrefix: {{ $state.aws.rolePrefix }}
+  {{- end }}
+  {{- if $state.aws.permissionsBoundary }}
+  permissionsBoundaryArn: {{ $state.aws.permissionsBoundary }}
+  {{- end }}
+  serviceAccount:
+    name: {{ $state.podIdentity.saName }}
+    namespace: {{ $state.podIdentity.saNamespace }}
+  managedPolicyArns:
+    - arn:aws:iam::aws:policy/AdministratorAccess
+  tags: {{ $state.aws.tags | toJson }}
+
+# ==============================================================================
+# Usage: Protect PodIdentity from deletion until AWS provider is deleted
+# ==============================================================================
+{{- if and ($state.observed.podIdentity.ready | default false) ($state.observed.awsProvider.ready | default false) }}
+---
+apiVersion: protection.crossplane.io/v1beta1
+kind: Usage
+metadata:
+  name: {{ $state.name }}-delete-aws-before-pod-identity
+  annotations:
+    {{ setResourceNameAnnotation "usage-pod-identity" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  of:
+    apiVersion: aws.hops.ops.com.ai/v1alpha1
+    kind: PodIdentity
+    resourceRef:
+      name: {{ $state.name }}-pod-identity
+  by:
+    apiVersion: kubernetes.m.crossplane.io/v1alpha2
+    kind: Object
+    resourceRef:
+      name: {{ $state.name }}-provider-family-aws
+  replayDeletion: true
+{{- end }}
+{{- end }}

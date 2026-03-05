@@ -1,0 +1,67 @@
+# code: language=yaml
+{{- $raw := $.observed.resources | default dict }}
+
+{{- /* AWS Pod Identity */ -}}
+{{- $piEntry := get $raw "pod-identity" | default dict }}
+{{- $piResource := $piEntry.resource | default dict }}
+{{- $piStatus := $piResource.status | default dict }}
+{{- $piReady := false }}
+{{- range ($piStatus.conditions | default list) }}
+  {{- if and (eq .type "Ready") (eq .status "True") }}
+    {{- $piReady = true }}
+  {{- end }}
+{{- end }}
+
+{{- /* AWS Provider Family */ -}}
+{{- $awsProvEntry := get $raw "provider-family-aws" | default dict }}
+{{- $awsProvResource := $awsProvEntry.resource | default dict }}
+{{- $awsProvStatus := $awsProvResource.status | default dict }}
+{{- $awsProvReady := false }}
+{{- range ($awsProvStatus.conditions | default list) }}
+  {{- if and (eq .type "Installed") (eq .status "True") }}
+    {{- $awsProvReady = true }}
+  {{- end }}
+{{- end }}
+
+{{- /* Kubernetes Provider */ -}}
+{{- $k8sProvEntry := get $raw "provider-kubernetes" | default dict }}
+{{- $k8sProvResource := $k8sProvEntry.resource | default dict }}
+{{- $k8sProvStatus := $k8sProvResource.status | default dict }}
+{{- $k8sProvReady := false }}
+{{- range ($k8sProvStatus.conditions | default list) }}
+  {{- if and (eq .type "Installed") (eq .status "True") }}
+    {{- $k8sProvReady = true }}
+  {{- end }}
+{{- end }}
+
+{{- /* Helm Provider */ -}}
+{{- $helmProvEntry := get $raw "provider-helm" | default dict }}
+{{- $helmProvResource := $helmProvEntry.resource | default dict }}
+{{- $helmProvStatus := $helmProvResource.status | default dict }}
+{{- $helmProvReady := false }}
+{{- range ($helmProvStatus.conditions | default list) }}
+  {{- if and (eq .type "Installed") (eq .status "True") }}
+    {{- $helmProvReady = true }}
+  {{- end }}
+{{- end }}
+
+{{- /* GitHub Provider */ -}}
+{{- $ghProvEntry := get $raw "provider-github" | default dict }}
+{{- $ghProvResource := $ghProvEntry.resource | default dict }}
+{{- $ghProvStatus := $ghProvResource.status | default dict }}
+{{- $ghProvReady := false }}
+{{- range ($ghProvStatus.conditions | default list) }}
+  {{- if and (eq .type "Installed") (eq .status "True") }}
+    {{- $ghProvReady = true }}
+  {{- end }}
+{{- end }}
+
+{{- $state = set $state "observed" (merge $state.observed (dict
+  "podIdentity" (dict
+    "ready" $piReady
+  )
+  "awsProvider" (dict "ready" $awsProvReady)
+  "k8sProvider" (dict "ready" $k8sProvReady)
+  "helmProvider" (dict "ready" $helmProvReady)
+  "githubProvider" (dict "ready" $ghProvReady)
+)) }}

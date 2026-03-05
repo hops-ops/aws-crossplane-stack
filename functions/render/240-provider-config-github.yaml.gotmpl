@@ -1,0 +1,28 @@
+# code: language=yaml
+{{- if $state.providers.github.enabled }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha2
+kind: Object
+metadata:
+  name: {{ $state.name }}-providerconfig-github
+  annotations:
+    {{ setResourceNameAnnotation "providerconfig-github" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: github.upbound.io/v1beta1
+      kind: ProviderConfig
+      metadata:
+        name: {{ $state.providers.github.providerConfigName }}
+      spec:
+        credentials:
+          source: Secret
+          secretRef:
+            name: {{ $state.providers.github.secretName }}
+            namespace: {{ $state.crossplane.namespace }}
+            key: credentials
+  providerConfigRef:
+    name: {{ $state.providers.kubernetes.providerConfigName }}
+{{- end }}

@@ -1,0 +1,267 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: crossplanestacks.stacks.aws.hops.ops.com.ai
+spec:
+  group: stacks.aws.hops.ops.com.ai
+  names:
+    kind: CrossplaneStack
+    plural: crossplanestacks
+  scope: Namespaced
+  defaultCompositeDeletePolicy: Foreground
+  versions:
+  - name: v1alpha1
+    referenceable: true
+    served: true
+    schema:
+      openAPIV3Schema:
+        description: >-
+          CrossplaneStack installs Crossplane via Helm and configures AWS (PodIdentity),
+          Kubernetes, Helm, and GitHub providers with toggle flags.
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - clusterName
+            - aws
+            properties:
+              clusterName:
+                description: Name of the target cluster. Used as default for provider config names.
+                type: string
+              managementPolicies:
+                type: array
+                items:
+                  type: string
+                default: ["*"]
+              labels:
+                description: Labels applied to all composed resources.
+                type: object
+                additionalProperties:
+                  type: string
+                x-kubernetes-preserve-unknown-fields: true
+              tags:
+                description: AWS tags applied to all AWS resources.
+                type: object
+                additionalProperties:
+                  type: string
+                x-kubernetes-preserve-unknown-fields: true
+              aws:
+                description: AWS configuration for provider setup.
+                type: object
+                required:
+                - region
+                properties:
+                  accountId:
+                    description: AWS account ID.
+                    type: string
+                  clusterName:
+                    description: EKS cluster name if different from spec.clusterName.
+                    type: string
+                  region:
+                    description: AWS region.
+                    type: string
+                  permissionsBoundary:
+                    description: IAM permissions boundary ARN.
+                    type: string
+                  rolePrefix:
+                    description: Prefix for IAM role names.
+                    type: string
+                  tags:
+                    description: Additional AWS tags for AWS-specific resources.
+                    type: object
+                    additionalProperties:
+                      type: string
+                    x-kubernetes-preserve-unknown-fields: true
+              install:
+                description: Crossplane Helm release configuration.
+                type: object
+                properties:
+                  namespace:
+                    description: Namespace for Crossplane installation. Defaults to crossplane-system.
+                    type: string
+                  name:
+                    description: Helm release name. Defaults to crossplane.
+                    type: string
+                  values:
+                    description: Helm values merged with defaults.
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  overrideAllValues:
+                    description: Helm values that replace all defaults.
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+              providers:
+                description: Provider toggle flags and configuration.
+                type: object
+                properties:
+                  aws:
+                    description: AWS provider configuration.
+                    type: object
+                    properties:
+                      enabled:
+                        description: Enable the AWS provider. Defaults to true.
+                        type: boolean
+                      providerConfigName:
+                        description: ProviderConfig name. Defaults to clusterName.
+                        type: string
+                      runtimeConfig:
+                        description: Resource limits for the provider runtime.
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+                          requestsCpu:
+                            type: string
+                          requestsMemory:
+                            type: string
+                      providers:
+                        description: >-
+                          Map of AWS provider names to install (e.g. iam, s3, ec2).
+                          Each key is the provider suffix, value is config (currently empty object).
+                        type: object
+                        additionalProperties:
+                          type: object
+                          x-kubernetes-preserve-unknown-fields: true
+                        x-kubernetes-preserve-unknown-fields: true
+                  kubernetes:
+                    description: Kubernetes provider configuration.
+                    type: object
+                    properties:
+                      enabled:
+                        description: Enable the Kubernetes provider. Defaults to true.
+                        type: boolean
+                      providerConfigName:
+                        description: ProviderConfig name. Defaults to clusterName.
+                        type: string
+                      runtimeConfig:
+                        description: Resource limits for the provider runtime.
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+                          requestsCpu:
+                            type: string
+                          requestsMemory:
+                            type: string
+                  helm:
+                    description: Helm provider configuration.
+                    type: object
+                    properties:
+                      enabled:
+                        description: Enable the Helm provider. Defaults to true.
+                        type: boolean
+                      providerConfigName:
+                        description: ProviderConfig name. Defaults to clusterName.
+                        type: string
+                      runtimeConfig:
+                        description: Resource limits for the provider runtime.
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+                          requestsCpu:
+                            type: string
+                          requestsMemory:
+                            type: string
+                  github:
+                    description: GitHub provider configuration.
+                    type: object
+                    properties:
+                      enabled:
+                        description: Enable the GitHub provider. Defaults to false.
+                        type: boolean
+                      providerConfigName:
+                        description: ProviderConfig name. Defaults to github.
+                        type: string
+                      runtimeConfig:
+                        description: Resource limits for the provider runtime.
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+                          requestsCpu:
+                            type: string
+                          requestsMemory:
+                            type: string
+                      githubOrg:
+                        description: GitHub organization name for the GITHUB_OWNER env var.
+                        type: string
+                      secretName:
+                        description: Name of the Secret (or ExternalSecret target) containing the GitHub token.
+                        type: string
+              nodePool:
+                description: Optional dedicated Karpenter NodePool for Crossplane workloads.
+                type: object
+                properties:
+                  enabled:
+                    description: Create a dedicated NodePool (default false).
+                    type: boolean
+                  nodeClassName:
+                    description: Name of the EKS NodeClass to reference (e.g. "default").
+                    type: string
+                  limits:
+                    description: "NodePool resource limits (default: nodes=10)."
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  requirements:
+                    description: "Karpenter requirement overrides (default: m/c families, amd64, on-demand)."
+                    type: array
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  disruption:
+                    description: "Disruption config (default: WhenEmptyOrUnderutilized, 60s)."
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+              functions:
+                description: Crossplane function configuration.
+                type: object
+                properties:
+                  autoReady:
+                    description: Install function-auto-ready. Defaults to true.
+                    type: boolean
+          status:
+            type: object
+            properties:
+              ready:
+                type: boolean
+              crossplane:
+                type: object
+                properties:
+                  ready:
+                    type: boolean
+                  namespace:
+                    type: string
+              providers:
+                type: object
+                properties:
+                  aws:
+                    type: object
+                    properties:
+                      ready:
+                        type: boolean
+                  kubernetes:
+                    type: object
+                    properties:
+                      ready:
+                        type: boolean
+                  helm:
+                    type: object
+                    properties:
+                      ready:
+                        type: boolean
+                  github:
+                    type: object
+                    properties:
+                      ready:
+                        type: boolean
+        required: [spec]

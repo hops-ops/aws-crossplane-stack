@@ -1,0 +1,24 @@
+# code: language=yaml
+{{- if $state.providers.aws.enabled }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha2
+kind: Object
+metadata:
+  name: {{ $state.name }}-providerconfig-aws
+  annotations:
+    {{ setResourceNameAnnotation "providerconfig-aws" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: aws.upbound.io/v1beta1
+      kind: ProviderConfig
+      metadata:
+        name: {{ $state.providers.aws.providerConfigName }}
+      spec:
+        credentials:
+          source: PodIdentity
+  providerConfigRef:
+    name: {{ $state.providers.kubernetes.providerConfigName }}
+{{- end }}

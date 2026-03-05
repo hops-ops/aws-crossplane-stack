@@ -1,0 +1,57 @@
+# code: language=yaml
+{{- if $state.providers.kubernetes.enabled }}
+{{- $rc := $state.providers.kubernetes.runtimeConfig }}
+{{- $reqCpu := $rc.requestsCpu | default "100m" }}
+{{- $reqMemory := $rc.requestsMemory | default "256Mi" }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha2
+kind: Object
+metadata:
+  name: {{ $state.name }}-drc-kubernetes
+  annotations:
+    {{ setResourceNameAnnotation "drc-kubernetes" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: pkg.crossplane.io/v1beta1
+      kind: DeploymentRuntimeConfig
+      metadata:
+        name: {{ $state.providers.kubernetes.providerConfigName }}-kubernetes
+      spec:
+        deploymentTemplate:
+          spec:
+            selector: {}
+            template:
+              spec:
+                containers:
+                - name: package-runtime
+                  resources:
+                    {{- if or $rc.cpu $rc.memory }}
+                    limits:
+                      {{- if $rc.cpu }}
+                      cpu: {{ $rc.cpu }}
+                      {{- end }}
+                      {{- if $rc.memory }}
+                      memory: {{ $rc.memory }}
+                      {{- end }}
+                    {{- end }}
+                    requests:
+                      cpu: {{ $reqCpu }}
+                      memory: {{ $reqMemory }}
+                {{- if $state.nodePool.enabled }}
+                nodeSelector:
+                  workload-type: crossplane
+                tolerations:
+                - key: crossplane
+                  operator: Equal
+                  value: "true"
+                  effect: NoSchedule
+                {{- end }}
+        serviceAccountTemplate:
+          metadata:
+            name: {{ $state.providers.kubernetes.providerConfigName }}-kubernetes
+  providerConfigRef:
+    name: {{ $state.providers.kubernetes.providerConfigName }}
+{{- end }}

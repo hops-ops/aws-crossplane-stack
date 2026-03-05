@@ -1,0 +1,19 @@
+# code: language=yaml
+{{- $raw := $.observed.resources | default dict }}
+
+{{- /* Crossplane Helm release */ -}}
+{{- $entry := get $raw "helm-release-crossplane" | default dict }}
+{{- $resource := $entry.resource | default dict }}
+{{- $status := $resource.status | default dict }}
+{{- $atProvider := $status.atProvider | default dict }}
+{{- $cpReady := false }}
+{{- range ($status.conditions | default list) }}
+  {{- if and (eq .type "Ready") (eq .status "True") }}
+    {{- $cpReady = true }}
+  {{- end }}
+{{- end }}
+
+{{- $state = set $state "observed" (merge $state.observed (dict "crossplane" (dict
+  "ready" $cpReady
+  "state" ($atProvider.state | default "")
+))) }}

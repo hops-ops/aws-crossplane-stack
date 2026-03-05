@@ -1,0 +1,92 @@
+# code: language=yaml
+{{- if $state.providers.aws.enabled }}
+{{- $awsProviders := $state.providers.aws.providers }}
+{{- $defaultRc := $state.providers.aws.runtimeConfig }}
+{{- range $subName, $subConfig := $awsProviders }}
+{{- $rc := $subConfig.runtimeConfig | default dict }}
+{{- $hasDrc := gt (len $rc) 0 }}
+{{- if $hasDrc }}
+{{- $reqCpu := $rc.requestsCpu | default ($defaultRc.requestsCpu | default "100m") }}
+{{- $reqMemory := $rc.requestsMemory | default ($defaultRc.requestsMemory | default "256Mi") }}
+{{- $limCpu := $rc.cpu | default ($defaultRc.cpu | default "") }}
+{{- $limMemory := $rc.memory | default ($defaultRc.memory | default "") }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha2
+kind: Object
+metadata:
+  name: {{ $state.name }}-drc-aws-{{ $subName }}
+  annotations:
+    {{ setResourceNameAnnotation (printf "drc-aws-%s" $subName) }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: pkg.crossplane.io/v1beta1
+      kind: DeploymentRuntimeConfig
+      metadata:
+        name: {{ $state.providers.aws.providerConfigName }}-aws-{{ $subName }}
+      spec:
+        deploymentTemplate:
+          spec:
+            selector: {}
+            template:
+              spec:
+                containers:
+                - name: package-runtime
+                  resources:
+                    {{- if or $limCpu $limMemory }}
+                    limits:
+                      {{- if $limCpu }}
+                      cpu: {{ $limCpu }}
+                      {{- end }}
+                      {{- if $limMemory }}
+                      memory: {{ $limMemory }}
+                      {{- end }}
+                    {{- end }}
+                    requests:
+                      cpu: {{ $reqCpu }}
+                      memory: {{ $reqMemory }}
+                {{- if $state.nodePool.enabled }}
+                nodeSelector:
+                  workload-type: crossplane
+                tolerations:
+                - key: crossplane
+                  operator: Equal
+                  value: "true"
+                  effect: NoSchedule
+                {{- end }}
+        serviceAccountTemplate:
+          metadata:
+            name: {{ $state.podIdentity.saName }}
+  providerConfigRef:
+    name: {{ $state.providers.kubernetes.providerConfigName }}
+{{- end }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha2
+kind: Object
+metadata:
+  name: {{ $state.name }}-provider-aws-{{ $subName }}
+  annotations:
+    {{ setResourceNameAnnotation (printf "provider-aws-%s" $subName) }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: pkg.crossplane.io/v1
+      kind: Provider
+      metadata:
+        name: crossplane-contrib-provider-aws-{{ $subName }}
+      spec:
+        package: xpkg.crossplane.io/crossplane-contrib/provider-aws-{{ $subName }}
+        runtimeConfigRef:
+          {{- if $hasDrc }}
+          name: {{ $state.providers.aws.providerConfigName }}-aws-{{ $subName }}
+          {{- else }}
+          name: {{ $state.providers.aws.providerConfigName }}-aws
+          {{- end }}
+  providerConfigRef:
+    name: {{ $state.providers.kubernetes.providerConfigName }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,99 @@
+apiVersion: stacks.aws.hops.ops.com.ai/v1alpha1
+kind: CrossplaneStack
+metadata:
+  name: crossplane
+  namespace: default
+spec:
+  clusterName: production
+  labels:
+    team: platform
+    environment: production
+  tags:
+    team: platform
+    environment: production
+  aws:
+    region: us-east-1
+    permissionsBoundary: arn:aws:iam::123456789012:policy/eks-boundary
+    tags:
+      cost-center: platform
+  install:
+    namespace: crossplane-system
+    name: crossplane
+    values:
+      resourcesCrossplane:
+        limits:
+          cpu: "2"
+          memory: 2Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+  providers:
+    aws:
+      enabled: true
+      providerConfigName: production
+      runtimeConfig:
+        cpu: "1"
+        memory: 1Gi
+        requestsCpu: 250m
+        requestsMemory: 512Mi
+      providers:
+        iam: {}
+        s3: {}
+        ec2:
+          runtimeConfig:
+            cpu: "2"
+            memory: 2Gi
+            requestsCpu: 500m
+            requestsMemory: 1Gi
+        eks: {}
+        rds: {}
+        lambda: {}
+    kubernetes:
+      enabled: true
+      providerConfigName: production
+      runtimeConfig:
+        cpu: 500m
+        memory: 512Mi
+        requestsCpu: 100m
+        requestsMemory: 256Mi
+    helm:
+      enabled: true
+      providerConfigName: production
+      runtimeConfig:
+        cpu: 500m
+        memory: 512Mi
+        requestsCpu: 100m
+        requestsMemory: 256Mi
+    github:
+      enabled: true
+      providerConfigName: github
+      githubOrg: my-org
+      secretName: github-provider-token
+      runtimeConfig:
+        cpu: 500m
+        memory: 512Mi
+        requestsCpu: 100m
+        requestsMemory: 256Mi
+  nodePool:
+    enabled: true
+    nodeClassName: default
+    limits:
+      nodes: 10
+    requirements:
+      - key: eks.amazonaws.com/instance-family
+        operator: In
+        values: ["m6i", "m7i", "c6i", "c7i"]
+      - key: node.kubernetes.io/instance-type
+        operator: In
+        values: ["m6i.xlarge", "m7i.xlarge", "c6i.xlarge", "c7i.xlarge"]
+      - key: kubernetes.io/arch
+        operator: In
+        values: ["amd64"]
+      - key: karpenter.sh/capacity-type
+        operator: In
+        values: ["spot"]
+    disruption:
+      consolidationPolicy: WhenEmptyOrUnderutilized
+      consolidateAfter: 60s
+  functions:
+    autoReady: true

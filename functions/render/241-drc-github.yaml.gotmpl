@@ -1,0 +1,60 @@
+# code: language=yaml
+{{- if $state.providers.github.enabled }}
+{{- $rc := $state.providers.github.runtimeConfig }}
+{{- $reqCpu := $rc.requestsCpu | default "100m" }}
+{{- $reqMemory := $rc.requestsMemory | default "256Mi" }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha2
+kind: Object
+metadata:
+  name: {{ $state.name }}-drc-github
+  annotations:
+    {{ setResourceNameAnnotation "drc-github" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: pkg.crossplane.io/v1beta1
+      kind: DeploymentRuntimeConfig
+      metadata:
+        name: {{ $state.providers.github.providerConfigName }}-github
+      spec:
+        deploymentTemplate:
+          spec:
+            selector: {}
+            template:
+              spec:
+                containers:
+                - name: package-runtime
+                  resources:
+                    {{- if or $rc.cpu $rc.memory }}
+                    limits:
+                      {{- if $rc.cpu }}
+                      cpu: {{ $rc.cpu }}
+                      {{- end }}
+                      {{- if $rc.memory }}
+                      memory: {{ $rc.memory }}
+                      {{- end }}
+                    {{- end }}
+                    requests:
+                      cpu: {{ $reqCpu }}
+                      memory: {{ $reqMemory }}
+                  env:
+                  - name: GITHUB_OWNER
+                    value: {{ $state.providers.github.githubOrg }}
+                {{- if $state.nodePool.enabled }}
+                nodeSelector:
+                  workload-type: crossplane
+                tolerations:
+                - key: crossplane
+                  operator: Equal
+                  value: "true"
+                  effect: NoSchedule
+                {{- end }}
+        serviceAccountTemplate:
+          metadata:
+            name: {{ $state.providers.github.providerConfigName }}-github
+  providerConfigRef:
+    name: {{ $state.providers.kubernetes.providerConfigName }}
+{{- end }}
