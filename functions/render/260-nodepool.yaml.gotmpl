@@ -1,7 +1,7 @@
 # code: language=yaml
 {{- if $state.nodePool.enabled }}
 ---
-apiVersion: kubernetes.m.crossplane.io/v1alpha2
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
   name: {{ $state.name }}-nodepool-crossplane
@@ -35,4 +35,5 @@ spec:
         disruption: {{ $state.nodePool.disruption | toJson }}
   providerConfigRef:
     name: {{ $state.providers.kubernetes.providerConfigName }}
+    kind: ProviderConfig
 {{- end }}

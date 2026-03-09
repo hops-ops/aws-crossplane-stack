@@ -11,7 +11,7 @@
 {{- $limCpu := $rc.cpu | default ($defaultRc.cpu | default "") }}
 {{- $limMemory := $rc.memory | default ($defaultRc.memory | default "") }}
 ---
-apiVersion: kubernetes.m.crossplane.io/v1alpha2
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
   name: {{ $state.name }}-drc-aws-{{ $subName }}
@@ -61,9 +61,10 @@ spec:
             name: {{ $state.podIdentity.saName }}
   providerConfigRef:
     name: {{ $state.providers.kubernetes.providerConfigName }}
+    kind: ProviderConfig
 {{- end }}
 ---
-apiVersion: kubernetes.m.crossplane.io/v1alpha2
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
   name: {{ $state.name }}-provider-aws-{{ $subName }}
@@ -88,5 +89,6 @@ spec:
           {{- end }}
   providerConfigRef:
     name: {{ $state.providers.kubernetes.providerConfigName }}
+    kind: ProviderConfig
 {{- end }}
 {{- end }}

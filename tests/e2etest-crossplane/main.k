@@ -1,4 +1,4 @@
-# e2etest-crossplane - stacks.aws CrossplaneStack E2E Test
+# e2etest-crossplane - aws CrossplaneStack E2E Test
 # ========================================================
 # Tests deployment of Crossplane via Helm and provider configuration with PodIdentity.
 #
@@ -28,7 +28,7 @@ import file
 import datetime
 import math
 import models.io.upbound.dev.meta.v1alpha1 as metav1alpha1
-import models.ai.com.ops.hops.aws.stacks.v1alpha1 as stacksv1alpha1
+import models.ai.com.ops.hops.aws.v1alpha1 as awsv1alpha1
 
 # Read AWS credentials from local file (gitignored)
 _creds = file.read("secrets/aws-creds")
@@ -226,7 +226,7 @@ _items = [
                         tags = {
                             "e2etest" = "true"
                             "test-run" = _now
-                            "repo": "https://github.com/hops-ops/stack-aws-crossplane"
+                            "repo": "https://github.com/hops-ops/aws-crossplane-stack"
                         }
                         publicAccess = True
                         nodeConfig = {
@@ -240,7 +240,7 @@ _items = [
             ]
             # manifests: The CrossplaneStack XR under test
             manifests = [
-                stacksv1alpha1.CrossplaneStack {
+                awsv1alpha1.CrossplaneStack {
                     metadata.name = "crossplane"
                     metadata.namespace = _namespace
                     spec = {

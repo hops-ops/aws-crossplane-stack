@@ -1,4 +1,4 @@
-# stack-aws-crossplane
+# aws-crossplane-stack
 
 Installs Crossplane via Helm and configures AWS (IRSA), Kubernetes, Helm, and GitHub providers with toggle flags.
 
@@ -18,7 +18,7 @@ Single unified XRD that replaces multiple separate configurations for Crossplane
 ### Minimal
 
 ```yaml
-apiVersion: stacks.aws.hops.ops.com.ai/v1alpha1
+apiVersion: aws.hops.ops.com.ai/v1alpha1
 kind: CrossplaneStack
 metadata:
   name: crossplane
@@ -34,7 +34,7 @@ spec:
 ### With GitHub provider and sub-providers
 
 ```yaml
-apiVersion: stacks.aws.hops.ops.com.ai/v1alpha1
+apiVersion: aws.hops.ops.com.ai/v1alpha1
 kind: CrossplaneStack
 metadata:
   name: crossplane

@@ -51,7 +51,7 @@ jobs:
       aws-role-duration-seconds: 7200
       debug-resource-types: |
         [
-          "crossplanestacks.stacks.aws.hops.ops.com.ai"
+          "crossplanestacks.aws.hops.ops.com.ai"
         ]
       delete-extra-resources: |
         [

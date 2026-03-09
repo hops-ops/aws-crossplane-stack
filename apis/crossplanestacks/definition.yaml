@@ -1,9 +1,9 @@
 apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
-  name: crossplanestacks.stacks.aws.hops.ops.com.ai
+  name: crossplanestacks.aws.hops.ops.com.ai
 spec:
-  group: stacks.aws.hops.ops.com.ai
+  group: aws.hops.ops.com.ai
   names:
     kind: CrossplaneStack
     plural: crossplanestacks

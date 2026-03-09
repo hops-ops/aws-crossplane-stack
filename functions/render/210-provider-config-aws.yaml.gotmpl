@@ -1,7 +1,7 @@
 # code: language=yaml
 {{- if $state.providers.aws.enabled }}
 ---
-apiVersion: kubernetes.m.crossplane.io/v1alpha2
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
   name: {{ $state.name }}-providerconfig-aws
@@ -21,4 +21,5 @@ spec:
           source: PodIdentity
   providerConfigRef:
     name: {{ $state.providers.kubernetes.providerConfigName }}
+    kind: ProviderConfig
 {{- end }}

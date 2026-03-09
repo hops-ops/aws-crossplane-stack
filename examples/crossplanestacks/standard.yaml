@@ -1,4 +1,4 @@
-apiVersion: stacks.aws.hops.ops.com.ai/v1alpha1
+apiVersion: aws.hops.ops.com.ai/v1alpha1
 kind: CrossplaneStack
 metadata:
   name: crossplane

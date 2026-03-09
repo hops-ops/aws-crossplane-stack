@@ -1,7 +1,7 @@
 # code: language=yaml
 {{- if $state.functions.autoReady }}
 ---
-apiVersion: kubernetes.m.crossplane.io/v1alpha2
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
   name: {{ $state.name }}-function-auto-ready
@@ -20,4 +20,5 @@ spec:
         package: xpkg.crossplane.io/crossplane-contrib/function-auto-ready:v0.6.0
   providerConfigRef:
     name: {{ $state.providers.kubernetes.providerConfigName }}
+    kind: ProviderConfig
 {{- end }}

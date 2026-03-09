@@ -4,7 +4,7 @@
 {{- $reqCpu := $rc.requestsCpu | default "100m" }}
 {{- $reqMemory := $rc.requestsMemory | default "256Mi" }}
 ---
-apiVersion: kubernetes.m.crossplane.io/v1alpha2
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
   name: {{ $state.name }}-drc-helm
@@ -54,4 +54,5 @@ spec:
             name: {{ $state.providers.helm.providerConfigName }}-helm
   providerConfigRef:
     name: {{ $state.providers.kubernetes.providerConfigName }}
+    kind: ProviderConfig
 {{- end }}

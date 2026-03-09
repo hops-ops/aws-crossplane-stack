@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-PACKAGE ?= stack-aws-crossplane
+PACKAGE ?= aws-crossplane-stack
 XRD_DIR := apis/crossplanestacks
 COMPOSITION := $(XRD_DIR)/composition.yaml
 DEFINITION := $(XRD_DIR)/definition.yaml
@@ -71,12 +71,12 @@ validate\:all: generate-configuration
 				echo "=== Validating $$example with observed-resources $$observed ==="; \
 				up composition render --xrd=$(DEFINITION) $(COMPOSITION) $$example \
 					--observed-resources=$$observed --include-full-xr --quiet | \
-					crossplane beta validate $(XRD_DIR) --error-on-missing-schemas -; \
+					crossplane beta validate $(CONFIGURATION),$(XRD_DIR) --error-on-missing-schemas -; \
 			else \
 				echo "=== Validating $$example ==="; \
 				up composition render --xrd=$(DEFINITION) $(COMPOSITION) $$example \
 					--include-full-xr --quiet | \
-					crossplane beta validate $(XRD_DIR) --error-on-missing-schemas -; \
+					crossplane beta validate $(CONFIGURATION),$(XRD_DIR) --error-on-missing-schemas -; \
 			fi; \
 			echo "" \
 		) > "$$outfile" 2>&1 & \
@@ -106,7 +106,7 @@ validate\:%: generate-configuration
 	@example="examples/crossplanestacks/$*.yaml"; \
 	up composition render --xrd=$(DEFINITION) $(COMPOSITION) $$example \
 		--include-full-xr --quiet | \
-		crossplane beta validate $(XRD_DIR) --error-on-missing-schemas -
+		crossplane beta validate $(CONFIGURATION),$(XRD_DIR) --error-on-missing-schemas -
 
 test:
 	up test run $(RENDER_TESTS)
