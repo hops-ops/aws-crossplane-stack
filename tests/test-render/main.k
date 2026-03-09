@@ -59,18 +59,18 @@ _items = [
                     }
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-providerconfig-aws"
                     spec.forProvider.manifest = {
-                        apiVersion = "aws.upbound.io/v1beta1"
+                        apiVersion = "aws.m.upbound.io/v1beta1"
                         kind = "ProviderConfig"
                         metadata.name = "my-cluster"
                         spec.credentials.source = "PodIdentity"
                     }
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-provider-family-aws"
                     spec.forProvider.manifest = {
@@ -80,18 +80,18 @@ _items = [
                     }
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-providerconfig-kubernetes"
                     spec.forProvider.manifest = {
-                        apiVersion = "kubernetes.crossplane.io/v1alpha1"
+                        apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                         kind = "ProviderConfig"
                         metadata.name = "my-cluster"
                         spec.credentials.source = "InjectedIdentity"
                     }
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-provider-kubernetes"
                     spec.forProvider.manifest = {
@@ -101,18 +101,18 @@ _items = [
                     }
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-providerconfig-helm"
                     spec.forProvider.manifest = {
-                        apiVersion = "helm.crossplane.io/v1beta1"
+                        apiVersion = "helm.m.crossplane.io/v1beta1"
                         kind = "ProviderConfig"
                         metadata.name = "my-cluster"
                         spec.credentials.source = "InjectedIdentity"
                     }
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-provider-helm"
                     spec.forProvider.manifest = {
@@ -122,7 +122,7 @@ _items = [
                     }
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-function-auto-ready"
                     spec.forProvider.manifest = {
@@ -168,17 +168,17 @@ _items = [
                     metadata.name = "crossplane-pod-identity"
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-provider-family-aws"
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-provider-kubernetes"
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-provider-helm"
                 }
@@ -216,11 +216,11 @@ _items = [
             }
             assertResources = [
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-providerconfig-github"
                     spec.forProvider.manifest = {
-                        apiVersion = "github.upbound.io/v1beta1"
+                        apiVersion = "github.m.upbound.io/v1beta1"
                         kind = "ProviderConfig"
                         metadata.name = "github"
                         spec.credentials = {
@@ -234,7 +234,7 @@ _items = [
                     }
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-drc-github"
                     spec.forProvider.manifest = {
@@ -244,7 +244,7 @@ _items = [
                     }
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-provider-github"
                     spec.forProvider.manifest = {
@@ -254,7 +254,7 @@ _items = [
                     }
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-externalsecret-github"
                     spec.forProvider.manifest = {
@@ -301,7 +301,7 @@ _items = [
             }
             assertResources = [
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-provider-aws-iam"
                     spec.forProvider.manifest = {
@@ -312,7 +312,7 @@ _items = [
                     }
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-provider-aws-s3"
                     spec.forProvider.manifest = {
@@ -489,7 +489,7 @@ _items = [
             }
             assertResources = [
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-nodepool-crossplane"
                     spec.forProvider.manifest = {
@@ -520,7 +520,7 @@ _items = [
                     }
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-drc-aws"
                     spec.forProvider.manifest = {
@@ -573,7 +573,7 @@ _items = [
                     metadata.name = "crossplane"
                 }
                 {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha2"
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-drc-aws"
                     spec.forProvider.manifest = {
