@@ -31,5 +31,5 @@ spec:
     {{- end }}
   rollbackLimit: 3
   providerConfigRef:
-    name: {{ $state.providers.helm.providerConfigName }}
-    kind: ProviderConfig
+    name: {{ $state.helmProviderConfigRef.name }}
+    kind: {{ $state.helmProviderConfigRef.kind }}

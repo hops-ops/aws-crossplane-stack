@@ -29,6 +29,39 @@ spec:
               clusterName:
                 description: Name of the target cluster. Used as default for provider config names.
                 type: string
+              awsProviderConfigRef:
+                description: ProviderConfig reference for the AWS provider on the management cluster (e.g. for PodIdentity IAM resources).
+                type: object
+                properties:
+                  name:
+                    description: Name of the AWS ProviderConfig. Defaults to "default".
+                    type: string
+                  kind:
+                    description: Kind of the provider config reference.
+                    type: string
+                    enum: [ProviderConfig, ClusterProviderConfig]
+              helmProviderConfigRef:
+                description: ProviderConfig reference for the Helm provider on the management cluster (connects to target cluster).
+                type: object
+                properties:
+                  name:
+                    description: Name of the Helm ProviderConfig. Defaults to clusterName.
+                    type: string
+                  kind:
+                    description: Kind of the provider config reference.
+                    type: string
+                    enum: [ProviderConfig, ClusterProviderConfig]
+              kubernetesProviderConfigRef:
+                description: ProviderConfig reference for the Kubernetes provider on the management cluster (connects to target cluster).
+                type: object
+                properties:
+                  name:
+                    description: Name of the Kubernetes ProviderConfig. Defaults to clusterName.
+                    type: string
+                  kind:
+                    description: Kind of the provider config reference.
+                    type: string
+                    enum: [ProviderConfig, ClusterProviderConfig]
               managementPolicies:
                 type: array
                 items:

@@ -60,8 +60,8 @@ spec:
           metadata:
             name: {{ $state.podIdentity.saName }}
   providerConfigRef:
-    name: {{ $state.providers.kubernetes.providerConfigName }}
-    kind: ProviderConfig
+    name: {{ $state.kubernetesProviderConfigRef.name }}
+    kind: {{ $state.kubernetesProviderConfigRef.kind }}
 {{- end }}
 ---
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
@@ -88,7 +88,7 @@ spec:
           name: {{ $state.providers.aws.providerConfigName }}-aws
           {{- end }}
   providerConfigRef:
-    name: {{ $state.providers.kubernetes.providerConfigName }}
-    kind: ProviderConfig
+    name: {{ $state.kubernetesProviderConfigRef.name }}
+    kind: {{ $state.kubernetesProviderConfigRef.kind }}
 {{- end }}
 {{- end }}

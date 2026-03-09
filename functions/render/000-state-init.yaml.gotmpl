@@ -35,6 +35,23 @@
 {{- $cpValues := $crossplane.values | default dict }}
 {{- $cpOverrideAllValues := $crossplane.overrideAllValues | default dict }}
 
+{{- /* Management cluster provider config refs */ -}}
+{{- $awsProviderConfigRef := $spec.awsProviderConfigRef | default dict }}
+{{- $awsProviderConfigRef = dict
+  "name" ($awsProviderConfigRef.name | default "default")
+  "kind" ($awsProviderConfigRef.kind | default "ProviderConfig")
+}}
+{{- $helmProviderConfigRef := $spec.helmProviderConfigRef | default dict }}
+{{- $helmProviderConfigRef = dict
+  "name" ($helmProviderConfigRef.name | default $clusterName)
+  "kind" ($helmProviderConfigRef.kind | default "ProviderConfig")
+}}
+{{- $kubernetesProviderConfigRef := $spec.kubernetesProviderConfigRef | default dict }}
+{{- $kubernetesProviderConfigRef = dict
+  "name" ($kubernetesProviderConfigRef.name | default $clusterName)
+  "kind" ($kubernetesProviderConfigRef.kind | default "ProviderConfig")
+}}
+
 {{- /* Provider toggles */ -}}
 {{- $providers := $spec.providers | default dict }}
 
@@ -111,6 +128,9 @@
   "managementPolicies" $managementPolicies
   "labels" $labels
   "tags" $tags
+  "awsProviderConfigRef" $awsProviderConfigRef
+  "helmProviderConfigRef" $helmProviderConfigRef
+  "kubernetesProviderConfigRef" $kubernetesProviderConfigRef
   "aws" (dict
     "accountId" $awsAccountId
     "clusterName" $awsClusterName

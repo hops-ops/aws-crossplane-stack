@@ -21,6 +21,6 @@ spec:
         runtimeConfigRef:
           name: {{ $state.providers.helm.providerConfigName }}-helm
   providerConfigRef:
-    name: {{ $state.providers.kubernetes.providerConfigName }}
-    kind: ProviderConfig
+    name: {{ $state.kubernetesProviderConfigRef.name }}
+    kind: {{ $state.kubernetesProviderConfigRef.kind }}
 {{- end }}

@@ -95,7 +95,7 @@ _items = [
                         creds = _base64_creds
                     }
                 }
-                # AWS ProviderConfig using Secret credentials
+                # AWS ProviderConfig using Secret credentials (default)
                 {
                     apiVersion = "aws.m.upbound.io/v1beta1"
                     kind = "ProviderConfig"

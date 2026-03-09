@@ -17,8 +17,8 @@ spec:
   clusterName: {{ $state.aws.clusterName }}
   region: {{ $state.aws.region }}
   providerConfigRef:
-    name: {{ $state.providers.aws.providerConfigName }}
-    kind: ProviderConfig
+    name: {{ $state.awsProviderConfigRef.name }}
+    kind: {{ $state.awsProviderConfigRef.kind }}
   {{- if $state.aws.rolePrefix }}
   rolePrefix: {{ $state.aws.rolePrefix }}
   {{- end }}
