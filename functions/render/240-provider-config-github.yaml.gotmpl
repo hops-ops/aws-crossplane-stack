@@ -16,6 +16,7 @@ spec:
       kind: ProviderConfig
       metadata:
         name: {{ $state.providers.github.providerConfigName }}
+        namespace: default
       spec:
         credentials:
           source: Secret

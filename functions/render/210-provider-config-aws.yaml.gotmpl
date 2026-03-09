@@ -16,6 +16,7 @@ spec:
       kind: ProviderConfig
       metadata:
         name: {{ $state.providers.aws.providerConfigName }}
+        namespace: default
       spec:
         credentials:
           source: PodIdentity
