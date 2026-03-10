@@ -83,11 +83,17 @@ _items = [
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "crossplane-providerconfig-kubernetes"
-                    spec.forProvider.manifest = {
-                        apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                        kind = "ProviderConfig"
-                        metadata.name = "my-cluster"
-                        spec.credentials.source = "InjectedIdentity"
+                    spec = {
+                        forProvider.manifest = {
+                            apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                            kind = "ProviderConfig"
+                            metadata.name = "my-cluster"
+                            spec.credentials.source = "InjectedIdentity"
+                        }
+                        readiness = {
+                            policy = "DeriveFromCelQuery"
+                            celQuery = "has(object.metadata.uid)"
+                        }
                     }
                 }
                 {
