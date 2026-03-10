@@ -1,0 +1,30 @@
+# code: language=yaml
+{{- if $state.providers.kubernetes.enabled }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+  name: {{ $state.name }}-rbac-kubernetes
+  annotations:
+    {{ setResourceNameAnnotation "rbac-kubernetes" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: {{ $state.providers.kubernetes.providerConfigName }}-kubernetes-admin
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - kind: ServiceAccount
+        name: {{ $state.providers.kubernetes.providerConfigName }}-kubernetes
+        namespace: {{ $state.crossplane.namespace }}
+  providerConfigRef:
+    name: {{ $state.kubernetesProviderConfigRef.name }}
+    kind: {{ $state.kubernetesProviderConfigRef.kind }}
+{{- end }}
