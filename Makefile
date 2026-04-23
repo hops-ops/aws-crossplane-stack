@@ -19,7 +19,7 @@ build:
 
 generate-configuration:
 	@set -euo pipefail; \
-	hops config generate --path . --api-path "$(XRD_DIR)"
+	hops validate generate-configuration --path . --api-path "$(XRD_DIR)"
 
 # Examples list - mirrors GitHub Actions workflow
 # Format: example_path::observed_resources_path (observed_resources_path is optional)
