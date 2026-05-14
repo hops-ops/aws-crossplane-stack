@@ -7,7 +7,7 @@
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
-  name: {{ $state.name }}-drc-helm
+  name: drc-helm
   annotations:
     {{ setResourceNameAnnotation "drc-helm" }}
   labels: {{ $state.labels | toJson }}

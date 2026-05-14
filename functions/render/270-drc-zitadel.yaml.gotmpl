@@ -1,15 +1,15 @@
 # code: language=yaml
-{{- if $state.providers.aws.enabled }}
-{{- $rc := $state.providers.aws.runtimeConfig }}
+{{- if $state.providers.zitadel.enabled }}
+{{- $rc := $state.providers.zitadel.runtimeConfig }}
 {{- $reqCpu := $rc.requestsCpu | default "100m" }}
 {{- $reqMemory := $rc.requestsMemory | default "256Mi" }}
 ---
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
-  name: drc-aws
+  name: drc-zitadel
   annotations:
-    {{ setResourceNameAnnotation "drc-aws" }}
+    {{ setResourceNameAnnotation "drc-zitadel" }}
   labels: {{ $state.labels | toJson }}
 spec:
   managementPolicies: {{ $state.managementPolicies | toJson }}
@@ -18,7 +18,7 @@ spec:
       apiVersion: pkg.crossplane.io/v1beta1
       kind: DeploymentRuntimeConfig
       metadata:
-        name: {{ $state.providers.aws.providerConfigName }}-aws
+        name: zitadel
       spec:
         deploymentTemplate:
           spec:
@@ -51,7 +51,7 @@ spec:
                 {{- end }}
         serviceAccountTemplate:
           metadata:
-            name: {{ $state.podIdentity.saName }}
+            name: zitadel
   providerConfigRef:
     name: {{ $state.kubernetesProviderConfigRef.name }}
     kind: {{ $state.kubernetesProviderConfigRef.kind }}

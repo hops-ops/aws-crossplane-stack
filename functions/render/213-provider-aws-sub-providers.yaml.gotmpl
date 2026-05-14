@@ -14,7 +14,7 @@
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
-  name: {{ $state.name }}-drc-aws-{{ $subName }}
+  name: drc-aws-{{ $subName }}
   annotations:
     {{ setResourceNameAnnotation (printf "drc-aws-%s" $subName) }}
   labels: {{ $state.labels | toJson }}
@@ -67,7 +67,7 @@ spec:
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
-  name: {{ $state.name }}-provider-aws-{{ $subName }}
+  name: provider-aws-{{ $subName }}
   annotations:
     {{ setResourceNameAnnotation (printf "provider-aws-%s" $subName) }}
   labels: {{ $state.labels | toJson }}
@@ -80,7 +80,7 @@ spec:
       metadata:
         name: crossplane-contrib-provider-aws-{{ $subName }}
       spec:
-        package: xpkg.crossplane.io/crossplane-contrib/provider-aws-{{ $subName }}
+        package: xpkg.crossplane.io/crossplane-contrib/provider-aws-{{ $subName }}:v2.5.0
         runtimeConfigRef:
           {{- if $hasDrc }}
           name: {{ $state.providers.aws.providerConfigName }}-aws-{{ $subName }}

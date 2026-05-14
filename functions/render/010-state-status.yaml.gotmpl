@@ -6,6 +6,7 @@
 {{- $k8sReady := $obs.k8sProvider.ready | default false }}
 {{- $helmReady := $obs.helmProvider.ready | default false }}
 {{- $ghReady := $obs.githubProvider.ready | default false }}
+{{- $zitReady := $obs.zitadelProvider.ready | default false }}
 
 {{- /* Overall readiness is managed by function-auto-ready */ -}}
 {{- $state = set $state "status" (dict
@@ -26,6 +27,9 @@
     )
     "github" (dict
       "ready" $ghReady
+    )
+    "zitadel" (dict
+      "ready" $zitReady
     )
   )
 ) }}

@@ -231,6 +231,29 @@ spec:
                       secretName:
                         description: Name of the Secret (or ExternalSecret target) containing the GitHub token.
                         type: string
+                  zitadel:
+                    description: >-
+                      Zitadel provider configuration. Installs the
+                      crossplane-contrib/provider-upjet-zitadel package + DRC.
+                      The ProviderConfig itself is composed by AuthStack, which
+                      owns the iam-admin PAT — see tasks/authstack-provider-zitadel-config.
+                    type: object
+                    properties:
+                      enabled:
+                        description: Enable the Zitadel provider. Defaults to false.
+                        type: boolean
+                      runtimeConfig:
+                        description: Resource limits for the provider runtime.
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+                          requestsCpu:
+                            type: string
+                          requestsMemory:
+                            type: string
               nodePool:
                 description: Optional dedicated Karpenter NodePool for Crossplane workloads.
                 type: object
@@ -238,6 +261,9 @@ spec:
                   enabled:
                     description: Create a dedicated NodePool (default false).
                     type: boolean
+                  name:
+                    description: NodePool name on the target cluster. Defaults to "crossplane".
+                    type: string
                   nodeClassName:
                     description: Name of the EKS NodeClass to reference (e.g. "default").
                     type: string
@@ -293,6 +319,11 @@ spec:
                       ready:
                         type: boolean
                   github:
+                    type: object
+                    properties:
+                      ready:
+                        type: boolean
+                  zitadel:
                     type: object
                     properties:
                       ready:

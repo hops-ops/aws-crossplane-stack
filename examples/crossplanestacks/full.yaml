@@ -74,6 +74,13 @@ spec:
         memory: 512Mi
         requestsCpu: 100m
         requestsMemory: 256Mi
+    zitadel:
+      enabled: true
+      runtimeConfig:
+        cpu: 500m
+        memory: 512Mi
+        requestsCpu: 100m
+        requestsMemory: 256Mi
   nodePool:
     enabled: true
     nodeClassName: default

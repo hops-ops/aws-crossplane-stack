@@ -4,7 +4,7 @@
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
-  name: {{ $state.name }}-rbac-helm
+  name: rbac-helm
   annotations:
     {{ setResourceNameAnnotation "rbac-helm" }}
   labels: {{ $state.labels | toJson }}

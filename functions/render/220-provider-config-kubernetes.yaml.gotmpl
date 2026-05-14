@@ -4,7 +4,7 @@
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
-  name: {{ $state.name }}-providerconfig-kubernetes
+  name: providerconfig-kubernetes
   annotations:
     {{ setResourceNameAnnotation "providerconfig-kubernetes" }}
   labels: {{ $state.labels | toJson }}

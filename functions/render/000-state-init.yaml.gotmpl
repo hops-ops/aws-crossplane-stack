@@ -94,19 +94,27 @@
 {{- $githubOrg := $provGithub.githubOrg | default "" }}
 {{- $githubSecretName := $provGithub.secretName | default "" }}
 
+{{- /* Zitadel provider — ProviderConfig is composed by AuthStack */ -}}
+{{- $provZitadel := $providers.zitadel | default dict }}
+{{- $zitadelEnabled := false }}
+{{- if hasKey $provZitadel "enabled" }}
+  {{- $zitadelEnabled = $provZitadel.enabled }}
+{{- end }}
+{{- $zitadelRuntimeConfig := $provZitadel.runtimeConfig | default dict }}
+
 {{- /* NodePool */ -}}
 {{- $nodePoolSpec := $spec.nodePool | default dict }}
 {{- $nodePoolEnabled := false }}
 {{- if hasKey $nodePoolSpec "enabled" }}
   {{- $nodePoolEnabled = $nodePoolSpec.enabled }}
 {{- end }}
-{{- $nodePoolName := printf "%s-crossplane" $clusterName }}
+{{- $nodePoolName := $nodePoolSpec.name | default "crossplane" }}
 {{- $nodePoolNodeClassName := $nodePoolSpec.nodeClassName | default "" }}
 {{- $nodePoolLimits := $nodePoolSpec.limits | default (dict "nodes" 10) }}
 {{- $nodePoolRequirements := $nodePoolSpec.requirements | default (list
-  (dict "key" "eks.amazonaws.com/instance-family" "operator" "In" "values" (list "m5" "m6i" "m7i" "c5" "c6i" "c7i"))
+  (dict "key" "eks.amazonaws.com/instance-family" "operator" "In" "values" (list "m5" "m5d" "m5n" "m6i" "m6id" "m6in" "m7i" "c5" "c5d" "c5n" "c6i" "c6id" "c6in" "c7i"))
   (dict "key" "kubernetes.io/arch" "operator" "In" "values" (list "amd64"))
-  (dict "key" "karpenter.sh/capacity-type" "operator" "In" "values" (list "on-demand"))
+  (dict "key" "karpenter.sh/capacity-type" "operator" "In" "values" (list "spot"))
 ) }}
 {{- $nodePoolDisruption := $nodePoolSpec.disruption | default (dict "consolidationPolicy" "WhenEmptyOrUnderutilized" "consolidateAfter" "60s") }}
 
@@ -168,6 +176,10 @@
       "runtimeConfig" $githubRuntimeConfig
       "githubOrg" $githubOrg
       "secretName" $githubSecretName
+    )
+    "zitadel" (dict
+      "enabled" $zitadelEnabled
+      "runtimeConfig" $zitadelRuntimeConfig
     )
   )
   "functions" (dict

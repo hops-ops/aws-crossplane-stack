@@ -8,7 +8,7 @@
 apiVersion: aws.hops.ops.com.ai/v1alpha1
 kind: PodIdentity
 metadata:
-  name: {{ $state.name }}-pod-identity
+  name: pod-identity
   annotations:
     {{ setResourceNameAnnotation "pod-identity" }}
   labels: {{ $state.labels | toJson }}
@@ -33,14 +33,22 @@ spec:
   tags: {{ $state.aws.tags | toJson }}
 
 # ==============================================================================
-# Usage: Protect PodIdentity from deletion until AWS provider is deleted
+# Usage: Protect PodIdentity from deletion until AWS provider is deleted.
+#
+# Rendered unconditionally when providers.aws.enabled is true (the stable
+# input). DO NOT gate this on observed readiness — Crossplane treats omitted
+# composition resources as deletes, so a transient Ready=False would yank the
+# deletion-ordering safeguard at exactly the wrong moment (when something is
+# already going sideways with one of the deps).
+#
+# Crossplane's Usage controller tolerates referents that don't exist yet —
+# the Usage simply stays pending until both refs materialize.
 # ==============================================================================
-{{- if and ($state.observed.podIdentity.ready | default false) ($state.observed.awsProvider.ready | default false) }}
 ---
 apiVersion: protection.crossplane.io/v1beta1
 kind: Usage
 metadata:
-  name: {{ $state.name }}-delete-aws-before-pod-identity
+  name: delete-aws-before-pod-identity
   annotations:
     {{ setResourceNameAnnotation "usage-pod-identity" }}
   labels: {{ $state.labels | toJson }}
@@ -49,12 +57,11 @@ spec:
     apiVersion: aws.hops.ops.com.ai/v1alpha1
     kind: PodIdentity
     resourceRef:
-      name: {{ $state.name }}-pod-identity
+      name: pod-identity
   by:
     apiVersion: kubernetes.m.crossplane.io/v1alpha1
     kind: Object
     resourceRef:
-      name: {{ $state.name }}-provider-family-aws
+      name: provider-family-aws
   replayDeletion: true
-{{- end }}
 {{- end }}

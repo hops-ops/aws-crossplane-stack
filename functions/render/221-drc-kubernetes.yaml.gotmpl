@@ -7,7 +7,7 @@
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
-  name: {{ $state.name }}-drc-kubernetes
+  name: drc-kubernetes
   annotations:
     {{ setResourceNameAnnotation "drc-kubernetes" }}
   labels: {{ $state.labels | toJson }}

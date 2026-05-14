@@ -47,7 +47,7 @@ _items = [
                 {
                     apiVersion = "aws.hops.ops.com.ai/v1alpha1"
                     kind = "PodIdentity"
-                    metadata.name = "crossplane-pod-identity"
+                    metadata.name = "pod-identity"
                     spec = {
                         clusterName = "my-cluster"
                         region = "us-east-1"
@@ -61,7 +61,7 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-providerconfig-aws"
+                    metadata.name = "providerconfig-aws"
                     spec.forProvider.manifest = {
                         apiVersion = "aws.m.upbound.io/v1beta1"
                         kind = "ProviderConfig"
@@ -72,7 +72,7 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-provider-family-aws"
+                    metadata.name = "provider-family-aws"
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1"
                         kind = "Provider"
@@ -82,7 +82,7 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-providerconfig-kubernetes"
+                    metadata.name = "providerconfig-kubernetes"
                     spec = {
                         forProvider.manifest = {
                             apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
@@ -99,7 +99,7 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-provider-kubernetes"
+                    metadata.name = "provider-kubernetes"
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1"
                         kind = "Provider"
@@ -109,7 +109,7 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-providerconfig-helm"
+                    metadata.name = "providerconfig-helm"
                     spec.forProvider.manifest = {
                         apiVersion = "helm.m.crossplane.io/v1beta1"
                         kind = "ProviderConfig"
@@ -120,7 +120,7 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-provider-helm"
+                    metadata.name = "provider-helm"
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1"
                         kind = "Provider"
@@ -130,7 +130,7 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-function-auto-ready"
+                    metadata.name = "function-auto-ready"
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1"
                         kind = "Function"
@@ -142,10 +142,10 @@ _items = [
     }
 
     # ==========================================================================
-    # Test 2: GitHub provider disabled by default
+    # Test 2: Optional providers (github, zitadel) disabled by default
     # ==========================================================================
     metav1alpha1.CompositionTest {
-        metadata.name = "github-disabled-by-default"
+        metadata.name = "optional-providers-disabled-by-default"
         spec = {
             compositionPath = "apis/crossplanestacks/composition.yaml"
             xrdPath = "apis/crossplanestacks/definition.yaml"
@@ -171,22 +171,22 @@ _items = [
                 {
                     apiVersion = "aws.hops.ops.com.ai/v1alpha1"
                     kind = "PodIdentity"
-                    metadata.name = "crossplane-pod-identity"
+                    metadata.name = "pod-identity"
                 }
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-provider-family-aws"
+                    metadata.name = "provider-family-aws"
                 }
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-provider-kubernetes"
+                    metadata.name = "provider-kubernetes"
                 }
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-provider-helm"
+                    metadata.name = "provider-helm"
                 }
             ]
         }
@@ -224,7 +224,7 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-providerconfig-github"
+                    metadata.name = "providerconfig-github"
                     spec.forProvider.manifest = {
                         apiVersion = "github.m.upbound.io/v1beta1"
                         kind = "ProviderConfig"
@@ -242,7 +242,7 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-drc-github"
+                    metadata.name = "drc-github"
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1beta1"
                         kind = "DeploymentRuntimeConfig"
@@ -252,7 +252,7 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-provider-github"
+                    metadata.name = "provider-github"
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1"
                         kind = "Provider"
@@ -262,7 +262,7 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-externalsecret-github"
+                    metadata.name = "externalsecret-github"
                     spec.forProvider.manifest = {
                         apiVersion = "external-secrets.io/v1beta1"
                         kind = "ExternalSecret"
@@ -309,23 +309,23 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-provider-aws-iam"
+                    metadata.name = "provider-aws-iam"
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1"
                         kind = "Provider"
                         metadata.name = "crossplane-contrib-provider-aws-iam"
-                        spec.package = "xpkg.crossplane.io/crossplane-contrib/provider-aws-iam"
+                        spec.package = "xpkg.crossplane.io/crossplane-contrib/provider-aws-iam:v2.5.0"
                     }
                 }
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-provider-aws-s3"
+                    metadata.name = "provider-aws-s3"
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1"
                         kind = "Provider"
                         metadata.name = "crossplane-contrib-provider-aws-s3"
-                        spec.package = "xpkg.crossplane.io/crossplane-contrib/provider-aws-s3"
+                        spec.package = "xpkg.crossplane.io/crossplane-contrib/provider-aws-s3:v2.5.0"
                     }
                 }
             ]
@@ -400,7 +400,7 @@ _items = [
                 {
                     apiVersion = "aws.hops.ops.com.ai/v1alpha1"
                     kind = "PodIdentity"
-                    metadata.name = "crossplane-pod-identity"
+                    metadata.name = "pod-identity"
                     spec = {
                         clusterName = "prod-cluster"
                         region = "eu-west-1"
@@ -457,7 +457,7 @@ _items = [
                 {
                     apiVersion = "aws.hops.ops.com.ai/v1alpha1"
                     kind = "PodIdentity"
-                    metadata.name = "crossplane-pod-identity"
+                    metadata.name = "pod-identity"
                     metadata.labels = {
                         team = "platform"
                         "hops.ops.com.ai/managed" = "true"
@@ -497,11 +497,11 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-nodepool-crossplane"
+                    metadata.name = "nodepool-crossplane"
                     spec.forProvider.manifest = {
                         apiVersion = "karpenter.sh/v1"
                         kind = "NodePool"
-                        metadata.name = "my-cluster-crossplane"
+                        metadata.name = "crossplane"
                         spec = {
                             template = {
                                 metadata.labels = {
@@ -528,7 +528,7 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-drc-aws"
+                    metadata.name = "drc-aws"
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1beta1"
                         kind = "DeploymentRuntimeConfig"
@@ -545,6 +545,55 @@ _items = [
                                 }
                             ]
                         }
+                    }
+                }
+                {
+                    apiVersion = "helm.m.crossplane.io/v1beta1"
+                    kind = "Release"
+                    metadata.name = "crossplane"
+                    spec.forProvider.values = {
+                        nodeSelector = {
+                            "workload-type" = "crossplane"
+                        }
+                        tolerations = [
+                            {
+                                key = "crossplane"
+                                operator = "Equal"
+                                value = "true"
+                                effect = "NoSchedule"
+                            }
+                        ]
+                        rbacManager = {
+                            nodeSelector = {
+                                "workload-type" = "crossplane"
+                            }
+                            tolerations = [
+                                {
+                                    key = "crossplane"
+                                    operator = "Equal"
+                                    value = "true"
+                                    effect = "NoSchedule"
+                                }
+                            ]
+                        }
+                    }
+                }
+                {
+                    apiVersion = "protection.crossplane.io/v1beta1"
+                    kind = "Usage"
+                    metadata.name = "delete-crossplane-before-nodepool"
+                    spec = {
+                        of = {
+                            apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                            kind = "Object"
+                            resourceRef.name = "nodepool-crossplane"
+                        }
+                        by = {
+                            apiVersion = "helm.m.crossplane.io/v1beta1"
+                            kind = "Release"
+                            resourceRef.name = "crossplane"
+                        }
+                        replayDeletion = True
                     }
                 }
             ]
@@ -581,10 +630,65 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
-                    metadata.name = "crossplane-drc-aws"
+                    metadata.name = "drc-aws"
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1beta1"
                         kind = "DeploymentRuntimeConfig"
+                    }
+                }
+            ]
+        }
+    }
+
+    # ==========================================================================
+    # Test 10: Zitadel provider enabled installs upjet-zitadel package + DRC
+    # ==========================================================================
+    metav1alpha1.CompositionTest {
+        metadata.name = "zitadel-enabled-renders-resources"
+        spec = {
+            compositionPath = "apis/crossplanestacks/composition.yaml"
+            xrdPath = "apis/crossplanestacks/definition.yaml"
+            timeoutSeconds = 60
+            validate = False
+            xr = {
+                apiVersion = "aws.hops.ops.com.ai/v1alpha1"
+                kind = "CrossplaneStack"
+                metadata.name = "crossplane"
+                spec = {
+                    clusterName = "my-cluster"
+                    aws = {
+                        region = "us-east-1"
+                    }
+                    providers = {
+                        zitadel = {
+                            enabled = True
+                        }
+                    }
+                }
+            }
+            assertResources = [
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "drc-zitadel"
+                    spec.forProvider.manifest = {
+                        apiVersion = "pkg.crossplane.io/v1beta1"
+                        kind = "DeploymentRuntimeConfig"
+                        metadata.name = "zitadel"
+                    }
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "provider-zitadel"
+                    spec.forProvider.manifest = {
+                        apiVersion = "pkg.crossplane.io/v1"
+                        kind = "Provider"
+                        metadata.name = "crossplane-contrib-provider-upjet-zitadel"
+                        spec = {
+                            package = "xpkg.crossplane.io/crossplane-contrib/provider-upjet-zitadel:v0.1.1"
+                            runtimeConfigRef.name = "zitadel"
+                        }
                     }
                 }
             ]

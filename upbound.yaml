@@ -15,7 +15,7 @@ spec:
   - apiVersion: pkg.crossplane.io/v1
     kind: Provider
     package: xpkg.crossplane.io/crossplane-contrib/provider-family-aws
-    version: '>=v2.5.0'
+    version: '>=v2.4.0'
   - apiVersion: pkg.crossplane.io/v1
     kind: Provider
     package: xpkg.crossplane.io/crossplane-contrib/provider-kubernetes
@@ -28,13 +28,17 @@ spec:
     kind: Provider
     package: xpkg.crossplane.io/crossplane-contrib/provider-upjet-github
     version: '>=v0.19.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.crossplane.io/crossplane-contrib/provider-upjet-zitadel
+    version: '>=v0.1.1'
   description: Installs Crossplane via Helm and configures AWS (PodIdentity), Kubernetes,
-    Helm, and GitHub providers.
+    Helm, GitHub, and Zitadel providers.
   license: Apache-2.0
   maintainer: Patrick Lee Scott <pat@patscott.io>
   readme: |
     # aws-crossplane-stack
     Installs Crossplane via Helm and configures AWS (PodIdentity), Kubernetes, Helm,
-    and GitHub providers with toggle flags.
+    GitHub, and Zitadel providers with toggle flags.
   repository: ghcr.io/hops-ops/aws-crossplane-stack
   source: github.com/hops-ops/aws-crossplane-stack

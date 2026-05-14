@@ -4,7 +4,7 @@
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
-  name: {{ $state.name }}-nodepool-crossplane
+  name: nodepool-crossplane
   annotations:
     {{ setResourceNameAnnotation "nodepool-crossplane" }}
   labels: {{ $state.labels | toJson }}
@@ -36,4 +36,32 @@ spec:
   providerConfigRef:
     name: {{ $state.kubernetesProviderConfigRef.name }}
     kind: {{ $state.kubernetesProviderConfigRef.kind }}
+# ==============================================================================
+# Usage: delete the crossplane Helm release before the NodePool so the chart's
+# pods drain (gracefully evicted onto whatever the next valid node is, if any)
+# before Karpenter tears the dedicated nodes down. Rendered unconditionally
+# when nodePool.enabled — NOT gated on observed readiness, so a transient
+# Ready=False on either dep cannot un-render this safeguard while a real
+# delete is in progress.
+# ==============================================================================
+---
+apiVersion: protection.crossplane.io/v1beta1
+kind: Usage
+metadata:
+  name: delete-crossplane-before-nodepool
+  annotations:
+    {{ setResourceNameAnnotation "usage-nodepool" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  of:
+    apiVersion: kubernetes.m.crossplane.io/v1alpha1
+    kind: Object
+    resourceRef:
+      name: nodepool-crossplane
+  by:
+    apiVersion: helm.m.crossplane.io/v1beta1
+    kind: Release
+    resourceRef:
+      name: {{ $state.crossplane.releaseName }}
+  replayDeletion: true
 {{- end }}

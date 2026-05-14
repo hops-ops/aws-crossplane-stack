@@ -1,5 +1,24 @@
 # code: language=yaml
 {{- $cp := $state.crossplane }}
+
+{{- /*
+  When the stack's NodePool is enabled, place the crossplane core +
+  rbac-manager deployments on it so the user-visible "crossplane is bursty,
+  give it its own nodes" benefit covers core controllers — not just the
+  provider pods that the DRC already pins. The chart applies these values
+  to both Deployments. Users can override via spec.install.values.
+*/ -}}
+{{- $nodePoolDefaults := dict }}
+{{- if $state.nodePool.enabled }}
+  {{- $nodePoolDefaults = dict
+    "nodeSelector" (dict "workload-type" "crossplane")
+    "tolerations" (list (dict "key" "crossplane" "operator" "Equal" "value" "true" "effect" "NoSchedule"))
+    "rbacManager" (dict
+      "nodeSelector" (dict "workload-type" "crossplane")
+      "tolerations" (list (dict "key" "crossplane" "operator" "Equal" "value" "true" "effect" "NoSchedule"))
+    )
+  }}
+{{- end }}
 ---
 apiVersion: helm.m.crossplane.io/v1beta1
 kind: Release
@@ -25,6 +44,9 @@ spec:
         enabled: true
       serviceMonitor:
         enabled: true
+      {{- if gt (len $nodePoolDefaults) 0 }}
+      {{- toYaml $nodePoolDefaults | nindent 6 }}
+      {{- end }}
       {{- if gt (len $cp.values) 0 }}
       {{- toYaml $cp.values | nindent 6 }}
       {{- end }}
