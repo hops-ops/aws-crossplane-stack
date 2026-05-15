@@ -687,9 +687,134 @@ _items = [
                         metadata.name = "crossplane-contrib-provider-upjet-zitadel"
                         spec = {
                             package = "xpkg.crossplane.io/crossplane-contrib/provider-upjet-zitadel:v0.1.1"
+                            skipDependencyResolution = True
                             runtimeConfigRef.name = "zitadel"
                         }
                     }
+                }
+            ]
+        }
+    }
+
+    # ==========================================================================
+    # Test 11: Every composed Provider + Function pins skipDependencyResolution
+    #
+    # Renovate watches the explicit package versions declared in this stack.
+    # `skipDependencyResolution: true` is required on every package so Crossplane
+    # never silently auto-installs a transitive dep at a version Renovate didn't
+    # pick. This test enables every provider + function the stack supports and
+    # asserts the field renders on each one.
+    # ==========================================================================
+    metav1alpha1.CompositionTest {
+        metadata.name = "all-packages-pinned-with-skip-dependency-resolution"
+        spec = {
+            compositionPath = "apis/crossplanestacks/composition.yaml"
+            xrdPath = "apis/crossplanestacks/definition.yaml"
+            timeoutSeconds = 60
+            validate = False
+            xr = {
+                apiVersion = "aws.hops.ops.com.ai/v1alpha1"
+                kind = "CrossplaneStack"
+                metadata.name = "crossplane"
+                spec = {
+                    clusterName = "my-cluster"
+                    aws = {
+                        region = "us-east-1"
+                    }
+                    providers = {
+                        aws = {
+                            providers = {
+                                iam = {}
+                                s3 = {}
+                                ec2 = {}
+                                eks = {}
+                                rds = {}
+                                "lambda" = {}
+                            }
+                        }
+                        github = {
+                            enabled = True
+                            githubOrg = "my-org"
+                            secretName = "github-token"
+                        }
+                        zitadel = {
+                            enabled = True
+                        }
+                    }
+                }
+            }
+            assertResources = [
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "provider-family-aws"
+                    spec.forProvider.manifest.spec.skipDependencyResolution = True
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "provider-aws-iam"
+                    spec.forProvider.manifest.spec.skipDependencyResolution = True
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "provider-aws-s3"
+                    spec.forProvider.manifest.spec.skipDependencyResolution = True
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "provider-aws-ec2"
+                    spec.forProvider.manifest.spec.skipDependencyResolution = True
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "provider-aws-eks"
+                    spec.forProvider.manifest.spec.skipDependencyResolution = True
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "provider-aws-rds"
+                    spec.forProvider.manifest.spec.skipDependencyResolution = True
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "provider-aws-lambda"
+                    spec.forProvider.manifest.spec.skipDependencyResolution = True
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "provider-kubernetes"
+                    spec.forProvider.manifest.spec.skipDependencyResolution = True
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "provider-helm"
+                    spec.forProvider.manifest.spec.skipDependencyResolution = True
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "provider-github"
+                    spec.forProvider.manifest.spec.skipDependencyResolution = True
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "provider-zitadel"
+                    spec.forProvider.manifest.spec.skipDependencyResolution = True
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "function-auto-ready"
+                    spec.forProvider.manifest.spec.skipDependencyResolution = True
                 }
             ]
         }

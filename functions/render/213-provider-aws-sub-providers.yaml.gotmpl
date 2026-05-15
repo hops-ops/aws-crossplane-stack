@@ -81,6 +81,7 @@ spec:
         name: crossplane-contrib-provider-aws-{{ $subName }}
       spec:
         package: xpkg.crossplane.io/crossplane-contrib/provider-aws-{{ $subName }}:v2.5.0
+        skipDependencyResolution: true
         runtimeConfigRef:
           {{- if $hasDrc }}
           name: {{ $state.providers.aws.providerConfigName }}-aws-{{ $subName }}
