@@ -113,6 +113,8 @@
 {{- $nodePoolLimits := $nodePoolSpec.limits | default (dict "nodes" 10) }}
 {{- $nodePoolRequirements := $nodePoolSpec.requirements | default (list
   (dict "key" "eks.amazonaws.com/instance-family" "operator" "In" "values" (list "m5" "m5d" "m5n" "m6i" "m6id" "m6in" "m7i" "c5" "c5d" "c5n" "c6i" "c6id" "c6in" "c7i"))
+  (dict "key" "eks.amazonaws.com/instance-memory" "operator" "Gt" "values" (list "7999"))
+  (dict "key" "eks.amazonaws.com/instance-cpu" "operator" "Gt" "values" (list "1"))
   (dict "key" "kubernetes.io/arch" "operator" "In" "values" (list "amd64"))
   (dict "key" "karpenter.sh/capacity-type" "operator" "In" "values" (list "spot"))
 ) }}
