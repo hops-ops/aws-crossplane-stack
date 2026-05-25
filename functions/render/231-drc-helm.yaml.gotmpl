@@ -1,8 +1,10 @@
 # code: language=yaml
 {{- if $state.providers.helm.enabled }}
 {{- $rc := $state.providers.helm.runtimeConfig }}
-{{- $reqCpu := $rc.requestsCpu | default "100m" }}
-{{- $reqMemory := $rc.requestsMemory | default "256Mi" }}
+{{- $reqCpu := $rc.requestsCpu | default "23m" }}
+{{- $reqMemory := $rc.requestsMemory | default "600Mi" }}
+{{- $limCpu := $rc.cpu | default "" }}
+{{- $limMemory := $rc.memory | default "768Mi" }}
 ---
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
@@ -28,13 +30,13 @@ spec:
                 containers:
                 - name: package-runtime
                   resources:
-                    {{- if or $rc.cpu $rc.memory }}
+                    {{- if or $limCpu $limMemory }}
                     limits:
-                      {{- if $rc.cpu }}
-                      cpu: {{ $rc.cpu }}
+                      {{- if $limCpu }}
+                      cpu: {{ $limCpu }}
                       {{- end }}
-                      {{- if $rc.memory }}
-                      memory: {{ $rc.memory }}
+                      {{- if $limMemory }}
+                      memory: {{ $limMemory }}
                       {{- end }}
                     {{- end }}
                     requests:

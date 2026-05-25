@@ -108,7 +108,7 @@
 {{- if hasKey $nodePoolSpec "enabled" }}
   {{- $nodePoolEnabled = $nodePoolSpec.enabled }}
 {{- end }}
-{{- $nodePoolName := $nodePoolSpec.name | default "crossplane" }}
+{{- $nodePoolName := $nodePoolSpec.name | default "hops-crossplane" }}
 {{- $nodePoolNodeClassName := $nodePoolSpec.nodeClassName | default "" }}
 {{- $nodePoolLimits := $nodePoolSpec.limits | default (dict "nodes" 10) }}
 {{- $nodePoolRequirements := $nodePoolSpec.requirements | default (list

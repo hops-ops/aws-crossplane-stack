@@ -4,6 +4,50 @@
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
 metadata:
+  name: drc-function-auto-ready
+  annotations:
+    {{ setResourceNameAnnotation "drc-function-auto-ready" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: pkg.crossplane.io/v1beta1
+      kind: DeploymentRuntimeConfig
+      metadata:
+        name: function-auto-ready
+      spec:
+        deploymentTemplate:
+          spec:
+            selector: {}
+            template:
+              spec:
+                containers:
+                - name: package-runtime
+                  resources:
+                    requests:
+                      cpu: 15m
+                      memory: 100Mi
+                    limits:
+                      cpu: 100m
+                      memory: 256Mi
+                {{- if $state.nodePool.enabled }}
+                nodeSelector:
+                  workload-type: crossplane
+                tolerations:
+                - key: crossplane
+                  operator: Equal
+                  value: "true"
+                  effect: NoSchedule
+                {{- end }}
+  providerConfigRef:
+    name: {{ $state.kubernetesProviderConfigRef.name }}
+    kind: {{ $state.kubernetesProviderConfigRef.kind }}
+
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
   name: function-auto-ready
   annotations:
     {{ setResourceNameAnnotation "function-auto-ready" }}
@@ -19,6 +63,8 @@ spec:
       spec:
         package: xpkg.crossplane.io/crossplane-contrib/function-auto-ready:v0.6.0
         skipDependencyResolution: true
+        runtimeConfigRef:
+          name: function-auto-ready
   providerConfigRef:
     name: {{ $state.kubernetesProviderConfigRef.name }}
     kind: {{ $state.kubernetesProviderConfigRef.kind }}

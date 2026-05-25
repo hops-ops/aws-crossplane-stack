@@ -1,8 +1,10 @@
 # code: language=yaml
 {{- if $state.providers.github.enabled }}
 {{- $rc := $state.providers.github.runtimeConfig }}
-{{- $reqCpu := $rc.requestsCpu | default "100m" }}
+{{- $reqCpu := $rc.requestsCpu | default "15m" }}
 {{- $reqMemory := $rc.requestsMemory | default "256Mi" }}
+{{- $limCpu := $rc.cpu | default "" }}
+{{- $limMemory := $rc.memory | default "512Mi" }}
 ---
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object
@@ -28,13 +30,13 @@ spec:
                 containers:
                 - name: package-runtime
                   resources:
-                    {{- if or $rc.cpu $rc.memory }}
+                    {{- if or $limCpu $limMemory }}
                     limits:
-                      {{- if $rc.cpu }}
-                      cpu: {{ $rc.cpu }}
+                      {{- if $limCpu }}
+                      cpu: {{ $limCpu }}
                       {{- end }}
-                      {{- if $rc.memory }}
-                      memory: {{ $rc.memory }}
+                      {{- if $limMemory }}
+                      memory: {{ $limMemory }}
                       {{- end }}
                     {{- end }}
                     requests:

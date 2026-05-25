@@ -44,6 +44,20 @@ spec:
         enabled: true
       serviceMonitor:
         enabled: true
+      resourcesCrossplane:
+        requests:
+          cpu: 247m
+          memory: 1052Mi
+        limits:
+          cpu: 1000m
+          memory: 3Gi
+      resourcesRBACManager:
+        requests:
+          cpu: 15m
+          memory: 100Mi
+        limits:
+          cpu: 100m
+          memory: 256Mi
       {{- if gt (len $nodePoolDefaults) 0 }}
       {{- toYaml $nodePoolDefaults | nindent 6 }}
       {{- end }}
