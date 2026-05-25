@@ -40,6 +40,10 @@ _items = [
                                 version = "2.2.0"
                             }
                             namespace = "crossplane-system"
+                            values = {
+                                resourcesCrossplane.requests = {cpu = "247m", memory = "1052Mi"}
+                                resourcesRBACManager.requests = {cpu = "15m", memory = "100Mi"}
+                            }
                         }
                         providerConfigRef.name = "my-cluster"
                     }
@@ -130,11 +134,68 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
+                    metadata.name = "drc-aws"
+                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.containers = [
+                        {
+                            name = "package-runtime"
+                            resources = {
+                                requests = {cpu = "23m", memory = "561Mi"}
+                                limits = {memory = "1536Mi"}
+                            }
+                        }
+                    ]
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "drc-kubernetes"
+                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.containers = [
+                        {
+                            name = "package-runtime"
+                            resources = {
+                                requests = {cpu = "23m", memory = "561Mi"}
+                                limits = {memory = "1024Mi"}
+                            }
+                        }
+                    ]
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "drc-helm"
+                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.containers = [
+                        {
+                            name = "package-runtime"
+                            resources = {
+                                requests = {cpu = "23m", memory = "600Mi"}
+                                limits = {memory = "768Mi"}
+                            }
+                        }
+                    ]
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "drc-function-auto-ready"
+                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.containers = [
+                        {
+                            name = "package-runtime"
+                            resources = {
+                                requests = {cpu = "15m", memory = "100Mi"}
+                                limits = {cpu = "100m", memory = "256Mi"}
+                            }
+                        }
+                    ]
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
                     metadata.name = "function-auto-ready"
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1"
                         kind = "Function"
                         metadata.name = "crossplane-contrib-function-auto-ready"
+                        spec.runtimeConfigRef.name = "function-auto-ready"
                     }
                 }
             ]
@@ -309,12 +370,35 @@ _items = [
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
+                    metadata.name = "drc-aws-iam"
+                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.containers = [
+                        {
+                            name = "package-runtime"
+                                resources.requests = {cpu = "23m", memory = "879Mi"}
+                        }
+                    ]
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "drc-aws-s3"
+                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.containers = [
+                        {
+                            name = "package-runtime"
+                                resources.requests = {cpu = "23m", memory = "934Mi"}
+                        }
+                    ]
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
                     metadata.name = "provider-aws-iam"
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1"
                         kind = "Provider"
                         metadata.name = "crossplane-contrib-provider-aws-iam"
                         spec.package = "xpkg.crossplane.io/crossplane-contrib/provider-aws-iam:v2.5.0"
+                        spec.runtimeConfigRef.name = "my-cluster-aws-iam"
                     }
                 }
                 {
@@ -326,6 +410,7 @@ _items = [
                         kind = "Provider"
                         metadata.name = "crossplane-contrib-provider-aws-s3"
                         spec.package = "xpkg.crossplane.io/crossplane-contrib/provider-aws-s3:v2.5.0"
+                        spec.runtimeConfigRef.name = "my-cluster-aws-s3"
                     }
                 }
             ]
@@ -501,7 +586,7 @@ _items = [
                     spec.forProvider.manifest = {
                         apiVersion = "karpenter.sh/v1"
                         kind = "NodePool"
-                        metadata.name = "crossplane"
+                        metadata.name = "hops-crossplane"
                         spec = {
                             template = {
                                 metadata.labels = {
@@ -545,6 +630,24 @@ _items = [
                                 }
                             ]
                         }
+                    }
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "drc-function-auto-ready"
+                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec = {
+                        nodeSelector = {
+                            "workload-type" = "crossplane"
+                        }
+                        tolerations = [
+                            {
+                                key = "crossplane"
+                                operator = "Equal"
+                                value = "true"
+                                effect = "NoSchedule"
+                            }
+                        ]
                     }
                 }
                 {
@@ -675,6 +778,15 @@ _items = [
                         apiVersion = "pkg.crossplane.io/v1beta1"
                         kind = "DeploymentRuntimeConfig"
                         metadata.name = "zitadel"
+                        spec.deploymentTemplate.spec.template.spec.containers = [
+                            {
+                                name = "package-runtime"
+                                resources = {
+                                    requests = {cpu = "35m", memory = "641Mi"}
+                                    limits = {memory = "2Gi"}
+                                }
+                            }
+                        ]
                     }
                 }
                 {

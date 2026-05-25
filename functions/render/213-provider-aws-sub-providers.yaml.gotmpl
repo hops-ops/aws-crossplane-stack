@@ -2,14 +2,22 @@
 {{- if $state.providers.aws.enabled }}
 {{- $awsProviders := $state.providers.aws.providers }}
 {{- $defaultRc := $state.providers.aws.runtimeConfig }}
+{{- $providerDefaults := dict
+  "ec2" (dict "requestsCpu" "35m" "requestsMemory" "684Mi" "memory" "2Gi")
+  "eks" (dict "requestsCpu" "23m" "requestsMemory" "641Mi" "memory" "1536Mi")
+  "iam" (dict "requestsCpu" "23m" "requestsMemory" "879Mi" "memory" "1536Mi")
+  "rds" (dict "requestsCpu" "23m" "requestsMemory" "561Mi" "memory" "1536Mi")
+  "s3" (dict "requestsCpu" "23m" "requestsMemory" "934Mi" "memory" "1536Mi")
+}}
 {{- range $subName, $subConfig := $awsProviders }}
 {{- $rc := $subConfig.runtimeConfig | default dict }}
-{{- $hasDrc := gt (len $rc) 0 }}
+{{- $subDefaults := get $providerDefaults $subName | default (dict "requestsCpu" "23m" "requestsMemory" "561Mi" "memory" "1536Mi") }}
+{{- $hasDrc := or (gt (len $rc) 0) (hasKey $providerDefaults $subName) }}
 {{- if $hasDrc }}
-{{- $reqCpu := $rc.requestsCpu | default ($defaultRc.requestsCpu | default "100m") }}
-{{- $reqMemory := $rc.requestsMemory | default ($defaultRc.requestsMemory | default "256Mi") }}
-{{- $limCpu := $rc.cpu | default ($defaultRc.cpu | default "") }}
-{{- $limMemory := $rc.memory | default ($defaultRc.memory | default "") }}
+{{- $reqCpu := $rc.requestsCpu | default ($defaultRc.requestsCpu | default $subDefaults.requestsCpu) }}
+{{- $reqMemory := $rc.requestsMemory | default ($defaultRc.requestsMemory | default $subDefaults.requestsMemory) }}
+{{- $limCpu := $rc.cpu | default ($defaultRc.cpu | default ($subDefaults.cpu | default "")) }}
+{{- $limMemory := $rc.memory | default ($defaultRc.memory | default ($subDefaults.memory | default "")) }}
 ---
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object

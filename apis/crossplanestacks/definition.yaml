@@ -262,7 +262,7 @@ spec:
                     description: Create a dedicated NodePool (default false).
                     type: boolean
                   name:
-                    description: NodePool name on the target cluster. Defaults to "crossplane".
+                    description: NodePool name on the target cluster. Defaults to "hops-crossplane".
                     type: string
                   nodeClassName:
                     description: Name of the EKS NodeClass to reference (e.g. "default").
