@@ -1,19 +1,14 @@
 import models.io.upbound.dev.meta.v1alpha1 as metav1alpha1
-import models.k8s.apimachinery.pkg.apis.meta.v1 as metav1
 
-# ==============================================================================
-# Unit tests for aws CrossplaneStack XRD
-# ==============================================================================
+_composition = "apis/crossplanestacks/composition.yaml"
+_xrd = "apis/crossplanestacks/definition.yaml"
 
 _items = [
-    # ==========================================================================
-    # Test 1: Minimal input renders Crossplane Helm release and default providers
-    # ==========================================================================
     metav1alpha1.CompositionTest {
-        metadata.name = "minimal-renders-crossplane-and-providers"
+        metadata.name = "minimal-renders-crossplane-core"
         spec = {
-            compositionPath = "apis/crossplanestacks/composition.yaml"
-            xrdPath = "apis/crossplanestacks/definition.yaml"
+            compositionPath = _composition
+            xrdPath = _xrd
             timeoutSeconds = 60
             validate = False
             xr = {
@@ -22,9 +17,6 @@ _items = [
                 metadata.name = "crossplane"
                 spec = {
                     clusterName = "my-cluster"
-                    aws = {
-                        region = "us-east-1"
-                    }
                 }
             }
             assertResources = [
@@ -41,295 +33,15 @@ _items = [
                             }
                             namespace = "crossplane-system"
                             values = {
+                                metrics.enabled = True
+                                serviceMonitor.enabled = True
                                 resourcesCrossplane.requests = {cpu = "247m", memory = "1052Mi"}
                                 resourcesRBACManager.requests = {cpu = "15m", memory = "100Mi"}
                             }
                         }
-                        providerConfigRef.name = "my-cluster"
-                    }
-                }
-                {
-                    apiVersion = "aws.hops.ops.com.ai/v1alpha1"
-                    kind = "PodIdentity"
-                    metadata.name = "pod-identity"
-                    spec = {
-                        clusterName = "my-cluster"
-                        region = "us-east-1"
-                        serviceAccount = {
-                            name = "my-cluster-crossplane-aws"
-                            namespace = "crossplane-system"
-                        }
-                        managedPolicyArns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "providerconfig-aws"
-                    spec.forProvider.manifest = {
-                        apiVersion = "aws.m.upbound.io/v1beta1"
-                        kind = "ProviderConfig"
-                        metadata.name = "my-cluster"
-                        spec.credentials.source = "PodIdentity"
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-family-aws"
-                    spec.forProvider.manifest = {
-                        apiVersion = "pkg.crossplane.io/v1"
-                        kind = "Provider"
-                        metadata.name = "crossplane-contrib-provider-family-aws"
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "providerconfig-kubernetes"
-                    spec = {
-                        forProvider.manifest = {
-                            apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                        providerConfigRef = {
+                            name = "my-cluster"
                             kind = "ProviderConfig"
-                            metadata.name = "my-cluster"
-                            spec.credentials.source = "InjectedIdentity"
-                        }
-                        readiness = {
-                            policy = "DeriveFromCelQuery"
-                            celQuery = "has(object.metadata.uid)"
-                        }
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-kubernetes"
-                    spec.forProvider.manifest = {
-                        apiVersion = "pkg.crossplane.io/v1"
-                        kind = "Provider"
-                        metadata.name = "crossplane-contrib-provider-kubernetes"
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "providerconfig-helm"
-                    spec.forProvider.manifest = {
-                        apiVersion = "helm.m.crossplane.io/v1beta1"
-                        kind = "ProviderConfig"
-                        metadata.name = "my-cluster"
-                        spec.credentials.source = "InjectedIdentity"
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-helm"
-                    spec.forProvider.manifest = {
-                        apiVersion = "pkg.crossplane.io/v1"
-                        kind = "Provider"
-                        metadata.name = "crossplane-contrib-provider-helm"
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "drc-aws"
-                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.containers = [
-                        {
-                            name = "package-runtime"
-                            resources = {
-                                requests = {cpu = "23m", memory = "561Mi"}
-                                limits = {memory = "1536Mi"}
-                            }
-                        }
-                    ]
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "drc-kubernetes"
-                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.containers = [
-                        {
-                            name = "package-runtime"
-                            resources = {
-                                requests = {cpu = "23m", memory = "561Mi"}
-                                limits = {memory = "1024Mi"}
-                            }
-                        }
-                    ]
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "drc-helm"
-                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.containers = [
-                        {
-                            name = "package-runtime"
-                            resources = {
-                                requests = {cpu = "23m", memory = "600Mi"}
-                                limits = {memory = "768Mi"}
-                            }
-                        }
-                    ]
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "drc-function-auto-ready"
-                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.containers = [
-                        {
-                            name = "package-runtime"
-                            resources = {
-                                requests = {cpu = "15m", memory = "100Mi"}
-                                limits = {cpu = "100m", memory = "256Mi"}
-                            }
-                        }
-                    ]
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "function-auto-ready"
-                    spec.forProvider.manifest = {
-                        apiVersion = "pkg.crossplane.io/v1"
-                        kind = "Function"
-                        metadata.name = "crossplane-contrib-function-auto-ready"
-                        spec.runtimeConfigRef.name = "function-auto-ready"
-                    }
-                }
-            ]
-        }
-    }
-
-    # ==========================================================================
-    # Test 2: Optional providers (github, zitadel) disabled by default
-    # ==========================================================================
-    metav1alpha1.CompositionTest {
-        metadata.name = "optional-providers-disabled-by-default"
-        spec = {
-            compositionPath = "apis/crossplanestacks/composition.yaml"
-            xrdPath = "apis/crossplanestacks/definition.yaml"
-            timeoutSeconds = 60
-            validate = False
-            xr = {
-                apiVersion = "aws.hops.ops.com.ai/v1alpha1"
-                kind = "CrossplaneStack"
-                metadata.name = "crossplane"
-                spec = {
-                    clusterName = "my-cluster"
-                    aws = {
-                        region = "us-east-1"
-                    }
-                }
-            }
-            assertResources = [
-                {
-                    apiVersion = "helm.m.crossplane.io/v1beta1"
-                    kind = "Release"
-                    metadata.name = "crossplane"
-                }
-                {
-                    apiVersion = "aws.hops.ops.com.ai/v1alpha1"
-                    kind = "PodIdentity"
-                    metadata.name = "pod-identity"
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-family-aws"
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-kubernetes"
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-helm"
-                }
-            ]
-        }
-    }
-
-    # ==========================================================================
-    # Test 3: GitHub provider enabled renders all GitHub resources
-    # ==========================================================================
-    metav1alpha1.CompositionTest {
-        metadata.name = "github-enabled-renders-resources"
-        spec = {
-            compositionPath = "apis/crossplanestacks/composition.yaml"
-            xrdPath = "apis/crossplanestacks/definition.yaml"
-            timeoutSeconds = 60
-            validate = False
-            xr = {
-                apiVersion = "aws.hops.ops.com.ai/v1alpha1"
-                kind = "CrossplaneStack"
-                metadata.name = "crossplane"
-                spec = {
-                    clusterName = "my-cluster"
-                    aws = {
-                        region = "us-east-1"
-                    }
-                    providers = {
-                        github = {
-                            enabled = True
-                            githubOrg = "my-org"
-                            secretName = "github-token"
-                        }
-                    }
-                }
-            }
-            assertResources = [
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "providerconfig-github"
-                    spec.forProvider.manifest = {
-                        apiVersion = "github.m.upbound.io/v1beta1"
-                        kind = "ProviderConfig"
-                        metadata.name = "github"
-                        spec.credentials = {
-                            source = "Secret"
-                            secretRef = {
-                                name = "github-token"
-                                namespace = "crossplane-system"
-                                key = "credentials"
-                            }
-                        }
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "drc-github"
-                    spec.forProvider.manifest = {
-                        apiVersion = "pkg.crossplane.io/v1beta1"
-                        kind = "DeploymentRuntimeConfig"
-                        metadata.name = "github-github"
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-github"
-                    spec.forProvider.manifest = {
-                        apiVersion = "pkg.crossplane.io/v1"
-                        kind = "Provider"
-                        metadata.name = "crossplane-contrib-provider-upjet-github"
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "externalsecret-github"
-                    spec.forProvider.manifest = {
-                        apiVersion = "external-secrets.io/v1beta1"
-                        kind = "ExternalSecret"
-                        metadata = {
-                            name = "github-token"
-                            namespace = "crossplane-system"
                         }
                     }
                 }
@@ -337,94 +49,11 @@ _items = [
         }
     }
 
-    # ==========================================================================
-    # Test 4: AWS sub-providers render correctly
-    # ==========================================================================
-    metav1alpha1.CompositionTest {
-        metadata.name = "aws-sub-providers-render"
-        spec = {
-            compositionPath = "apis/crossplanestacks/composition.yaml"
-            xrdPath = "apis/crossplanestacks/definition.yaml"
-            timeoutSeconds = 60
-            validate = False
-            xr = {
-                apiVersion = "aws.hops.ops.com.ai/v1alpha1"
-                kind = "CrossplaneStack"
-                metadata.name = "crossplane"
-                spec = {
-                    clusterName = "my-cluster"
-                    aws = {
-                        region = "us-east-1"
-                    }
-                    providers = {
-                        aws = {
-                            providers = {
-                                iam = {}
-                                s3 = {}
-                            }
-                        }
-                    }
-                }
-            }
-            assertResources = [
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "drc-aws-iam"
-                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.containers = [
-                        {
-                            name = "package-runtime"
-                                resources.requests = {cpu = "23m", memory = "879Mi"}
-                        }
-                    ]
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "drc-aws-s3"
-                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.containers = [
-                        {
-                            name = "package-runtime"
-                                resources.requests = {cpu = "23m", memory = "934Mi"}
-                        }
-                    ]
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-aws-iam"
-                    spec.forProvider.manifest = {
-                        apiVersion = "pkg.crossplane.io/v1"
-                        kind = "Provider"
-                        metadata.name = "crossplane-contrib-provider-aws-iam"
-                        spec.package = "xpkg.crossplane.io/crossplane-contrib/provider-aws-iam:v2.5.0"
-                        spec.runtimeConfigRef.name = "my-cluster-aws-iam"
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-aws-s3"
-                    spec.forProvider.manifest = {
-                        apiVersion = "pkg.crossplane.io/v1"
-                        kind = "Provider"
-                        metadata.name = "crossplane-contrib-provider-aws-s3"
-                        spec.package = "xpkg.crossplane.io/crossplane-contrib/provider-aws-s3:v2.5.0"
-                        spec.runtimeConfigRef.name = "my-cluster-aws-s3"
-                    }
-                }
-            ]
-        }
-    }
-
-    # ==========================================================================
-    # Test 5: Custom Crossplane Helm values merge with defaults
-    # ==========================================================================
     metav1alpha1.CompositionTest {
         metadata.name = "crossplane-helm-values-merge"
         spec = {
-            compositionPath = "apis/crossplanestacks/composition.yaml"
-            xrdPath = "apis/crossplanestacks/definition.yaml"
+            compositionPath = _composition
+            xrdPath = _xrd
             timeoutSeconds = 60
             validate = False
             xr = {
@@ -433,9 +62,6 @@ _items = [
                 metadata.name = "crossplane"
                 spec = {
                     clusterName = "my-cluster"
-                    aws = {
-                        region = "us-east-1"
-                    }
                     install = {
                         values = {
                             replicas = 2
@@ -458,57 +84,11 @@ _items = [
         }
     }
 
-    # ==========================================================================
-    # Test 6: PodIdentity renders with permissionsBoundary and rolePrefix
-    # ==========================================================================
     metav1alpha1.CompositionTest {
-        metadata.name = "pod-identity-with-boundary-and-prefix"
+        metadata.name = "override-all-values-replaces-defaults"
         spec = {
-            compositionPath = "apis/crossplanestacks/composition.yaml"
-            xrdPath = "apis/crossplanestacks/definition.yaml"
-            timeoutSeconds = 60
-            validate = False
-            xr = {
-                apiVersion = "aws.hops.ops.com.ai/v1alpha1"
-                kind = "CrossplaneStack"
-                metadata.name = "crossplane"
-                spec = {
-                    clusterName = "prod-cluster"
-                    aws = {
-                        region = "eu-west-1"
-                        permissionsBoundary = "arn:aws:iam::999888777666:policy/boundary"
-                        rolePrefix = "prod-"
-                    }
-                }
-            }
-            assertResources = [
-                {
-                    apiVersion = "aws.hops.ops.com.ai/v1alpha1"
-                    kind = "PodIdentity"
-                    metadata.name = "pod-identity"
-                    spec = {
-                        clusterName = "prod-cluster"
-                        region = "eu-west-1"
-                        permissionsBoundaryArn = "arn:aws:iam::999888777666:policy/boundary"
-                        rolePrefix = "prod-"
-                        serviceAccount = {
-                            name = "prod-cluster-crossplane-aws"
-                            namespace = "crossplane-system"
-                        }
-                    }
-                }
-            ]
-        }
-    }
-
-    # ==========================================================================
-    # Test 7: Labels and tags propagate to resources
-    # ==========================================================================
-    metav1alpha1.CompositionTest {
-        metadata.name = "labels-and-tags-propagate"
-        spec = {
-            compositionPath = "apis/crossplanestacks/composition.yaml"
-            xrdPath = "apis/crossplanestacks/definition.yaml"
+            compositionPath = _composition
+            xrdPath = _xrd
             timeoutSeconds = 60
             validate = False
             xr = {
@@ -517,14 +97,10 @@ _items = [
                 metadata.name = "crossplane"
                 spec = {
                     clusterName = "my-cluster"
-                    labels = {
-                        team = "platform"
-                    }
-                    tags = {
-                        environment = "production"
-                    }
-                    aws = {
-                        region = "us-east-1"
+                    install = {
+                        overrideAllValues = {
+                            replicas = 1
+                        }
                     }
                 }
             }
@@ -533,34 +109,19 @@ _items = [
                     apiVersion = "helm.m.crossplane.io/v1beta1"
                     kind = "Release"
                     metadata.name = "crossplane"
-                    metadata.labels = {
-                        team = "platform"
-                        "hops.ops.com.ai/managed" = "true"
-                        "hops.ops.com.ai/crossplanestack" = "crossplane"
-                    }
-                }
-                {
-                    apiVersion = "aws.hops.ops.com.ai/v1alpha1"
-                    kind = "PodIdentity"
-                    metadata.name = "pod-identity"
-                    metadata.labels = {
-                        team = "platform"
-                        "hops.ops.com.ai/managed" = "true"
-                        "hops.ops.com.ai/crossplanestack" = "crossplane"
+                    spec.forProvider.values = {
+                        replicas = 1
                     }
                 }
             ]
         }
     }
 
-    # ==========================================================================
-    # Test 8: NodePool enabled renders NodePool and DRC tolerations
-    # ==========================================================================
     metav1alpha1.CompositionTest {
-        metadata.name = "nodepool-enabled-renders-resources"
+        metadata.name = "nodepool-enabled-renders-nodepool-and-schedules-core"
         spec = {
-            compositionPath = "apis/crossplanestacks/composition.yaml"
-            xrdPath = "apis/crossplanestacks/definition.yaml"
+            compositionPath = _composition
+            xrdPath = _xrd
             timeoutSeconds = 60
             validate = False
             xr = {
@@ -569,9 +130,6 @@ _items = [
                 metadata.name = "crossplane"
                 spec = {
                     clusterName = "my-cluster"
-                    aws = {
-                        region = "us-east-1"
-                    }
                     nodePool = {
                         enabled = True
                         nodeClassName = "default"
@@ -587,67 +145,11 @@ _items = [
                         apiVersion = "karpenter.sh/v1"
                         kind = "NodePool"
                         metadata.name = "hops-crossplane"
-                        spec = {
-                            template = {
-                                metadata.labels = {
-                                    "workload-type" = "crossplane"
-                                }
-                                spec = {
-                                    nodeClassRef = {
-                                        group = "eks.amazonaws.com"
-                                        kind = "NodeClass"
-                                        name = "default"
-                                    }
-                                    taints = [
-                                        {
-                                            key = "crossplane"
-                                            value = "true"
-                                            effect = "NoSchedule"
-                                        }
-                                    ]
-                                }
-                            }
+                        spec.template.spec.nodeClassRef = {
+                            group = "eks.amazonaws.com"
+                            kind = "NodeClass"
+                            name = "default"
                         }
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "drc-aws"
-                    spec.forProvider.manifest = {
-                        apiVersion = "pkg.crossplane.io/v1beta1"
-                        kind = "DeploymentRuntimeConfig"
-                        spec.deploymentTemplate.spec.template.spec = {
-                            nodeSelector = {
-                                "workload-type" = "crossplane"
-                            }
-                            tolerations = [
-                                {
-                                    key = "crossplane"
-                                    operator = "Equal"
-                                    value = "true"
-                                    effect = "NoSchedule"
-                                }
-                            ]
-                        }
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "drc-function-auto-ready"
-                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec = {
-                        nodeSelector = {
-                            "workload-type" = "crossplane"
-                        }
-                        tolerations = [
-                            {
-                                key = "crossplane"
-                                operator = "Equal"
-                                value = "true"
-                                effect = "NoSchedule"
-                            }
-                        ]
                     }
                 }
                 {
@@ -685,248 +187,7 @@ _items = [
                     apiVersion = "protection.crossplane.io/v1beta1"
                     kind = "Usage"
                     metadata.name = "delete-crossplane-before-nodepool"
-                    spec = {
-                        of = {
-                            apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                            kind = "Object"
-                            resourceRef.name = "nodepool-crossplane"
-                        }
-                        by = {
-                            apiVersion = "helm.m.crossplane.io/v1beta1"
-                            kind = "Release"
-                            resourceRef.name = "crossplane"
-                        }
-                        replayDeletion = True
-                    }
-                }
-            ]
-        }
-    }
-
-    # ==========================================================================
-    # Test 9: NodePool disabled does not render NodePool or tolerations
-    # ==========================================================================
-    metav1alpha1.CompositionTest {
-        metadata.name = "nodepool-disabled-no-resources"
-        spec = {
-            compositionPath = "apis/crossplanestacks/composition.yaml"
-            xrdPath = "apis/crossplanestacks/definition.yaml"
-            timeoutSeconds = 60
-            validate = False
-            xr = {
-                apiVersion = "aws.hops.ops.com.ai/v1alpha1"
-                kind = "CrossplaneStack"
-                metadata.name = "crossplane"
-                spec = {
-                    clusterName = "my-cluster"
-                    aws = {
-                        region = "us-east-1"
-                    }
-                }
-            }
-            assertResources = [
-                {
-                    apiVersion = "helm.m.crossplane.io/v1beta1"
-                    kind = "Release"
-                    metadata.name = "crossplane"
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "drc-aws"
-                    spec.forProvider.manifest = {
-                        apiVersion = "pkg.crossplane.io/v1beta1"
-                        kind = "DeploymentRuntimeConfig"
-                    }
-                }
-            ]
-        }
-    }
-
-    # ==========================================================================
-    # Test 10: Zitadel provider enabled installs upjet-zitadel package + DRC
-    # ==========================================================================
-    metav1alpha1.CompositionTest {
-        metadata.name = "zitadel-enabled-renders-resources"
-        spec = {
-            compositionPath = "apis/crossplanestacks/composition.yaml"
-            xrdPath = "apis/crossplanestacks/definition.yaml"
-            timeoutSeconds = 60
-            validate = False
-            xr = {
-                apiVersion = "aws.hops.ops.com.ai/v1alpha1"
-                kind = "CrossplaneStack"
-                metadata.name = "crossplane"
-                spec = {
-                    clusterName = "my-cluster"
-                    aws = {
-                        region = "us-east-1"
-                    }
-                    providers = {
-                        zitadel = {
-                            enabled = True
-                        }
-                    }
-                }
-            }
-            assertResources = [
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "drc-zitadel"
-                    spec.forProvider.manifest = {
-                        apiVersion = "pkg.crossplane.io/v1beta1"
-                        kind = "DeploymentRuntimeConfig"
-                        metadata.name = "zitadel"
-                        spec.deploymentTemplate.spec.template.spec.containers = [
-                            {
-                                name = "package-runtime"
-                                resources = {
-                                    requests = {cpu = "35m", memory = "641Mi"}
-                                    limits = {memory = "2Gi"}
-                                }
-                            }
-                        ]
-                    }
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-zitadel"
-                    spec.forProvider.manifest = {
-                        apiVersion = "pkg.crossplane.io/v1"
-                        kind = "Provider"
-                        metadata.name = "crossplane-contrib-provider-upjet-zitadel"
-                        spec = {
-                            package = "xpkg.crossplane.io/crossplane-contrib/provider-upjet-zitadel:v0.1.1"
-                            skipDependencyResolution = True
-                            runtimeConfigRef.name = "zitadel"
-                        }
-                    }
-                }
-            ]
-        }
-    }
-
-    # ==========================================================================
-    # Test 11: Every composed Provider + Function pins skipDependencyResolution
-    #
-    # Renovate watches the explicit package versions declared in this stack.
-    # `skipDependencyResolution: true` is required on every package so Crossplane
-    # never silently auto-installs a transitive dep at a version Renovate didn't
-    # pick. This test enables every provider + function the stack supports and
-    # asserts the field renders on each one.
-    # ==========================================================================
-    metav1alpha1.CompositionTest {
-        metadata.name = "all-packages-pinned-with-skip-dependency-resolution"
-        spec = {
-            compositionPath = "apis/crossplanestacks/composition.yaml"
-            xrdPath = "apis/crossplanestacks/definition.yaml"
-            timeoutSeconds = 60
-            validate = False
-            xr = {
-                apiVersion = "aws.hops.ops.com.ai/v1alpha1"
-                kind = "CrossplaneStack"
-                metadata.name = "crossplane"
-                spec = {
-                    clusterName = "my-cluster"
-                    aws = {
-                        region = "us-east-1"
-                    }
-                    providers = {
-                        aws = {
-                            providers = {
-                                iam = {}
-                                s3 = {}
-                                ec2 = {}
-                                eks = {}
-                                rds = {}
-                                "lambda" = {}
-                            }
-                        }
-                        github = {
-                            enabled = True
-                            githubOrg = "my-org"
-                            secretName = "github-token"
-                        }
-                        zitadel = {
-                            enabled = True
-                        }
-                    }
-                }
-            }
-            assertResources = [
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-family-aws"
-                    spec.forProvider.manifest.spec.skipDependencyResolution = True
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-aws-iam"
-                    spec.forProvider.manifest.spec.skipDependencyResolution = True
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-aws-s3"
-                    spec.forProvider.manifest.spec.skipDependencyResolution = True
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-aws-ec2"
-                    spec.forProvider.manifest.spec.skipDependencyResolution = True
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-aws-eks"
-                    spec.forProvider.manifest.spec.skipDependencyResolution = True
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-aws-rds"
-                    spec.forProvider.manifest.spec.skipDependencyResolution = True
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-aws-lambda"
-                    spec.forProvider.manifest.spec.skipDependencyResolution = True
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-kubernetes"
-                    spec.forProvider.manifest.spec.skipDependencyResolution = True
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-helm"
-                    spec.forProvider.manifest.spec.skipDependencyResolution = True
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-github"
-                    spec.forProvider.manifest.spec.skipDependencyResolution = True
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "provider-zitadel"
-                    spec.forProvider.manifest.spec.skipDependencyResolution = True
-                }
-                {
-                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
-                    kind = "Object"
-                    metadata.name = "function-auto-ready"
-                    spec.forProvider.manifest.spec.skipDependencyResolution = True
+                    spec.replayDeletion = True
                 }
             ]
         }

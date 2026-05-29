@@ -1,15 +1,12 @@
 # e2etest-crossplane - aws CrossplaneStack E2E Test
 # ========================================================
-# Tests deployment of Crossplane via Helm and provider configuration with PodIdentity.
+# Tests deployment of Crossplane core via Helm.
 #
 # This test creates:
 # 1. An AutoEKSCluster using subnet IDs from the persistent hops-test network
 # 2. A CrossplaneStack that composes:
 #    - Crossplane Helm release
-#    - AWS provider (PodIdentity IAM Role + ProviderConfig + DRC + provider-family-aws)
-#    - Kubernetes provider (ProviderConfig + DRC + provider-kubernetes)
-#    - Helm provider (ProviderConfig + DRC + provider-helm)
-#    - function-auto-ready
+#    - Crossplane Helm release only
 #
 # Uses persistent network infrastructure from aws-network e2e test (hops-test)
 # to speed up test execution by avoiding network creation/deletion.
@@ -242,14 +239,6 @@ _items = [
                     metadata.namespace = _namespace
                     spec = {
                         clusterName = _test_name
-                        aws = {
-                            region = _region
-                        }
-                        providers = {
-                            github = {
-                                enabled = False
-                            }
-                        }
                     }
                 }
             ]

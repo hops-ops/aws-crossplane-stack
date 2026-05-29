@@ -13,21 +13,6 @@
 }}
 {{- $labels := merge $defaultLabels ($spec.labels | default dict) }}
 
-{{- $defaultTags := dict
-  "hops.ops.com.ai/managed" "true"
-  (printf "hops.ops.com.ai/%s" (lower $xr.kind)) $name
-}}
-{{- $tags := merge $defaultTags ($spec.tags | default dict) }}
-
-{{- /* AWS config */ -}}
-{{- $aws := $spec.aws | default dict }}
-{{- $awsAccountId := $aws.accountId | default "" }}
-{{- $awsClusterName := $aws.clusterName | default $clusterName }}
-{{- $awsRegion := $aws.region | default "us-east-1" }}
-{{- $awsPermissionsBoundary := $aws.permissionsBoundary | default "" }}
-{{- $awsRolePrefix := $aws.rolePrefix | default "" }}
-{{- $awsTags := merge (dict) $tags ($aws.tags | default dict) }}
-
 {{- /* Crossplane config */ -}}
 {{- $crossplane := $spec.install | default dict }}
 {{- $cpNamespace := $crossplane.namespace | default "crossplane-system" }}
@@ -36,11 +21,6 @@
 {{- $cpOverrideAllValues := $crossplane.overrideAllValues | default dict }}
 
 {{- /* Management cluster provider config refs */ -}}
-{{- $awsProviderConfigRef := $spec.awsProviderConfigRef | default dict }}
-{{- $awsProviderConfigRef = dict
-  "name" ($awsProviderConfigRef.name | default "default")
-  "kind" ($awsProviderConfigRef.kind | default "ProviderConfig")
-}}
 {{- $helmProviderConfigRef := $spec.helmProviderConfigRef | default dict }}
 {{- $helmProviderConfigRef = dict
   "name" ($helmProviderConfigRef.name | default $clusterName)
@@ -51,56 +31,6 @@
   "name" ($kubernetesProviderConfigRef.name | default $clusterName)
   "kind" ($kubernetesProviderConfigRef.kind | default "ProviderConfig")
 }}
-
-{{- /* Provider toggles */ -}}
-{{- $providers := $spec.providers | default dict }}
-
-{{- /* AWS provider */ -}}
-{{- $provAws := $providers.aws | default dict }}
-{{- $awsEnabled := true }}
-{{- if hasKey $provAws "enabled" }}
-  {{- $awsEnabled = $provAws.enabled }}
-{{- end }}
-{{- $awsProviderConfigName := $provAws.providerConfigName | default $clusterName }}
-{{- $awsRuntimeConfig := $provAws.runtimeConfig | default dict }}
-{{- $awsProviders := $provAws.providers | default dict }}
-
-{{- /* Kubernetes provider */ -}}
-{{- $provK8s := $providers.kubernetes | default dict }}
-{{- $k8sEnabled := true }}
-{{- if hasKey $provK8s "enabled" }}
-  {{- $k8sEnabled = $provK8s.enabled }}
-{{- end }}
-{{- $k8sProviderConfigName := $provK8s.providerConfigName | default $clusterName }}
-{{- $k8sRuntimeConfig := $provK8s.runtimeConfig | default dict }}
-
-{{- /* Helm provider */ -}}
-{{- $provHelm := $providers.helm | default dict }}
-{{- $helmEnabled := true }}
-{{- if hasKey $provHelm "enabled" }}
-  {{- $helmEnabled = $provHelm.enabled }}
-{{- end }}
-{{- $helmProviderConfigName := $provHelm.providerConfigName | default $clusterName }}
-{{- $helmRuntimeConfig := $provHelm.runtimeConfig | default dict }}
-
-{{- /* GitHub provider */ -}}
-{{- $provGithub := $providers.github | default dict }}
-{{- $githubEnabled := false }}
-{{- if hasKey $provGithub "enabled" }}
-  {{- $githubEnabled = $provGithub.enabled }}
-{{- end }}
-{{- $githubProviderConfigName := $provGithub.providerConfigName | default "github" }}
-{{- $githubRuntimeConfig := $provGithub.runtimeConfig | default dict }}
-{{- $githubOrg := $provGithub.githubOrg | default "" }}
-{{- $githubSecretName := $provGithub.secretName | default "" }}
-
-{{- /* Zitadel provider — ProviderConfig is composed by AuthStack */ -}}
-{{- $provZitadel := $providers.zitadel | default dict }}
-{{- $zitadelEnabled := false }}
-{{- if hasKey $provZitadel "enabled" }}
-  {{- $zitadelEnabled = $provZitadel.enabled }}
-{{- end }}
-{{- $zitadelRuntimeConfig := $provZitadel.runtimeConfig | default dict }}
 
 {{- /* NodePool */ -}}
 {{- $nodePoolSpec := $spec.nodePool | default dict }}
@@ -120,72 +50,19 @@
 ) }}
 {{- $nodePoolDisruption := $nodePoolSpec.disruption | default (dict "consolidationPolicy" "WhenEmptyOrUnderutilized" "consolidateAfter" "60s") }}
 
-{{- /* Functions */ -}}
-{{- $functions := $spec.functions | default dict }}
-{{- $fnAutoReady := true }}
-{{- if hasKey $functions "autoReady" }}
-  {{- $fnAutoReady = $functions.autoReady }}
-{{- end }}
-
-{{- /* PodIdentity - shared SA name for all AWS provider pods */ -}}
-{{- $podIdentitySaName := printf "%s-crossplane-aws" $clusterName }}
-{{- $podIdentitySaNamespace := $cpNamespace }}
-
 {{- /* Build $state */ -}}
 {{- $state := dict
   "name" $name
   "clusterName" $clusterName
   "managementPolicies" $managementPolicies
   "labels" $labels
-  "tags" $tags
-  "awsProviderConfigRef" $awsProviderConfigRef
   "helmProviderConfigRef" $helmProviderConfigRef
   "kubernetesProviderConfigRef" $kubernetesProviderConfigRef
-  "aws" (dict
-    "accountId" $awsAccountId
-    "clusterName" $awsClusterName
-    "region" $awsRegion
-    "permissionsBoundary" $awsPermissionsBoundary
-    "rolePrefix" $awsRolePrefix
-    "tags" $awsTags
-  )
   "crossplane" (dict
     "namespace" $cpNamespace
     "releaseName" $cpReleaseName
     "values" $cpValues
     "overrideAllValues" $cpOverrideAllValues
-  )
-  "providers" (dict
-    "aws" (dict
-      "enabled" $awsEnabled
-      "providerConfigName" $awsProviderConfigName
-      "runtimeConfig" $awsRuntimeConfig
-      "providers" $awsProviders
-    )
-    "kubernetes" (dict
-      "enabled" $k8sEnabled
-      "providerConfigName" $k8sProviderConfigName
-      "runtimeConfig" $k8sRuntimeConfig
-    )
-    "helm" (dict
-      "enabled" $helmEnabled
-      "providerConfigName" $helmProviderConfigName
-      "runtimeConfig" $helmRuntimeConfig
-    )
-    "github" (dict
-      "enabled" $githubEnabled
-      "providerConfigName" $githubProviderConfigName
-      "runtimeConfig" $githubRuntimeConfig
-      "githubOrg" $githubOrg
-      "secretName" $githubSecretName
-    )
-    "zitadel" (dict
-      "enabled" $zitadelEnabled
-      "runtimeConfig" $zitadelRuntimeConfig
-    )
-  )
-  "functions" (dict
-    "autoReady" $fnAutoReady
   )
   "nodePool" (dict
     "enabled" $nodePoolEnabled
@@ -194,10 +71,6 @@
     "limits" $nodePoolLimits
     "requirements" $nodePoolRequirements
     "disruption" $nodePoolDisruption
-  )
-  "podIdentity" (dict
-    "saName" $podIdentitySaName
-    "saNamespace" $podIdentitySaNamespace
   )
   "observed" (dict)
   "status" (dict)
