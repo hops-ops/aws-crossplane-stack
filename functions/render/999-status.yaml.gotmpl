@@ -9,14 +9,8 @@ status:
   crossplane:
     ready: {{ $s.crossplane.ready }}
     namespace: {{ $s.crossplane.namespace }}
-  providers:
-    aws:
-      ready: {{ $s.providers.aws.ready }}
-    kubernetes:
-      ready: {{ $s.providers.kubernetes.ready }}
-    helm:
-      ready: {{ $s.providers.helm.ready }}
-    github:
-      ready: {{ $s.providers.github.ready }}
-    zitadel:
-      ready: {{ $s.providers.zitadel.ready }}
+    releaseName: {{ $s.crossplane.releaseName }}
+    chartVersion: {{ $s.crossplane.chartVersion }}
+  nodePool:
+    ready: {{ $s.nodePool.ready }}
+    name: {{ $s.nodePool.name }}

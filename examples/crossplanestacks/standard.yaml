@@ -8,27 +8,11 @@ spec:
   labels:
     team: platform
     environment: production
-  tags:
-    team: platform
-    environment: production
-  aws:
-    region: us-east-1
-    tags:
-      cost-center: platform
-  providers:
-    aws:
-      enabled: true
-      providers:
-        iam: {}
-        s3: {}
-        ec2: {}
-    kubernetes:
-      enabled: true
-    helm:
-      enabled: true
-    github:
-      enabled: true
-      githubOrg: my-org
-      secretName: github-provider-token
-  functions:
-    autoReady: true
+  install:
+    namespace: crossplane-system
+    name: crossplane
+    values:
+      resourcesCrossplane:
+        requests:
+          cpu: 500m
+          memory: 1Gi

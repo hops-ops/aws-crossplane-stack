@@ -5,5 +5,3 @@ metadata:
   namespace: default
 spec:
   clusterName: my-cluster
-  aws:
-    region: us-east-1
