@@ -1,0 +1,16 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: openpanelproviderstacks.crossplane.hops.ops.com.ai
+spec:
+  compositeTypeRef:
+    apiVersion: crossplane.hops.ops.com.ai/v1alpha1
+    kind: OpenPanelProviderStack
+  mode: Pipeline
+  pipeline:
+  - functionRef:
+      name: hops-ops-aws-crossplane-stackopenpanel-provider
+    step: openpanel-provider
+  - functionRef:
+      name: crossplane-contrib-function-auto-ready
+    step: crossplane-contrib-function-auto-ready

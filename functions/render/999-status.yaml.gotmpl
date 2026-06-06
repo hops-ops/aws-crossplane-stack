@@ -12,5 +12,8 @@ status:
     releaseName: {{ $s.crossplane.releaseName }}
     chartVersion: {{ $s.crossplane.chartVersion }}
   nodePool:
+    enabled: {{ $s.nodePool.enabled }}
     ready: {{ $s.nodePool.ready }}
+    {{- if $s.nodePool.enabled }}
     name: {{ $s.nodePool.name }}
+    {{- end }}

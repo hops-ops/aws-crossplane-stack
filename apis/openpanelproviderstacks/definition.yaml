@@ -1,0 +1,145 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: openpanelproviderstacks.crossplane.hops.ops.com.ai
+spec:
+  group: crossplane.hops.ops.com.ai
+  names:
+    kind: OpenPanelProviderStack
+    plural: openpanelproviderstacks
+  scope: Namespaced
+  defaultCompositeDeletePolicy: Foreground
+  versions:
+  - name: v1alpha1
+    referenceable: true
+    served: true
+    schema:
+      openAPIV3Schema:
+        description: Installs hops-ops/provider-openpanel and optionally composes its Secret-backed ProviderConfig.
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - clusterName
+            properties:
+              clusterName:
+                description: Target cluster name. Used as the default for management ProviderConfig references.
+                type: string
+              enabled:
+                description: Render this provider package. Defaults to true.
+                type: boolean
+              managementPolicies:
+                type: array
+                items:
+                  type: string
+                default: ["*"]
+              labels:
+                type: object
+                additionalProperties:
+                  type: string
+                x-kubernetes-preserve-unknown-fields: true
+              tags:
+                type: object
+                additionalProperties:
+                  type: string
+                x-kubernetes-preserve-unknown-fields: true
+              kubernetesProviderConfigRef:
+                description: Management-plane Kubernetes ProviderConfig targeting the cluster where Crossplane is installed.
+                type: object
+                properties:
+                  name:
+                    type: string
+                  kind:
+                    type: string
+                    enum: [ProviderConfig, ClusterProviderConfig]
+              crossplaneNamespace:
+                description: Namespace where target Crossplane is installed. Defaults to crossplane-system.
+                type: string
+              package:
+                description: Provider package override.
+                type: object
+                properties:
+                  name:
+                    type: string
+                  version:
+                    type: string
+                  skipDependencyResolution:
+                    type: boolean
+              runtimeConfig:
+                description: Resource requests and limits for the provider runtime.
+                type: object
+                properties:
+                  cpu:
+                    type: string
+                  memory:
+                    type: string
+                  requestsCpu:
+                    type: string
+                  requestsMemory:
+                    type: string
+              nodePool:
+                description: Schedule this provider runtime onto the CrossplaneStack NodePool. This does not create or rename the NodePool; CrossplaneStack defaults it to hops-crossplane.
+                type: object
+                properties:
+                  enabled:
+                    description: Use the CrossplaneStack NodePool selector and toleration.
+                    type: boolean
+              scheduling:
+                description: Optional provider runtime placement overrides. When nodePool.enabled is true, these override the CrossplaneStack NodePool selector or toleration defaults.
+                type: object
+                properties:
+                  nodeSelector:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    x-kubernetes-preserve-unknown-fields: true
+                  tolerations:
+                    type: array
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+              providerConfigName:
+                description: Target Crossplane ProviderConfig name.
+                type: string
+              providerConfigNamespace:
+                description: Namespace for the target namespaced ProviderConfig. Defaults to default.
+                type: string
+              secretName:
+                description: Existing target-cluster Secret name used by the ProviderConfig. When omitted, the ProviderConfig is not rendered.
+                type: string
+              secretNamespace:
+                description: Namespace containing the credentials Secret. Defaults to crossplaneNamespace.
+                type: string
+              secretKey:
+                description: Secret key containing provider credentials. Defaults to credentials.
+                type: string
+              externalSecret:
+                description: Optional ExternalSecret that materializes the credentials Secret on the target cluster.
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                  remoteKey:
+                    type: string
+                  secretStoreName:
+                    type: string
+                  secretStoreKind:
+                    type: string
+                  targetKey:
+                    type: string
+              providers:
+                description: Legacy aggregate CrossplaneStack provider block accepted for migration compatibility.
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            properties:
+              ready:
+                type: boolean
+              provider:
+                type: object
+                properties:
+                  ready:
+                    type: boolean
+        required: [spec]

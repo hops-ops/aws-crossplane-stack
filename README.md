@@ -1,7 +1,7 @@
 # aws-crossplane-stack
 
-Installs Crossplane core via Helm. Provider and function packages are
-installed separately.
+Installs Crossplane core via Helm and publishes the provider/function stack APIs
+used to bootstrap a target Crossplane control plane.
 
 ## Overview
 
@@ -12,9 +12,17 @@ installed separately.
 3. **Usage safeguard** — deletion ordering when the NodePool is enabled.
 
 It does not render target-cluster Provider packages, Function packages,
-ProviderConfigs, DeploymentRuntimeConfigs, or PodIdentity. Install provider
-packages with the provider-specific `Crossplane*Provider` XRs and function
-packages with the `CrossplaneFunctions` XR under `xrs/stacks/crossplane`.
+ProviderConfigs, DeploymentRuntimeConfigs, or PodIdentity. Those concerns stay
+separate XRs in this same configuration package:
+
+- `FunctionsStack`
+- `AWSProviderStack`
+- `GitHubProviderStack`
+- `HelmProviderStack`
+- `KubernetesProviderStack`
+- `ListmonkProviderStack`
+- `OpenPanelProviderStack`
+- `ZitadelProviderStack`
 
 ## Usage
 
@@ -50,22 +58,27 @@ spec:
           memory: 1Gi
   nodePool:
     enabled: true
-    nodeClassName: default
+    nodeClassName: hops-default
 ```
+
+When enabled, the Crossplane NodePool defaults to cheap, flexible Spot capacity:
+c/m/r/t instance categories, generation 4 or newer, Linux, and no architecture
+pin. Workloads that require x86 images should set
+`nodeSelector: {kubernetes.io/arch: amd64}` or equivalent affinity.
 
 ### Function packages
 
-Function packages (e.g. `function-auto-ready`) are installed by the
-`CrossplaneFunctions` XR (`xrs/stacks/crossplane/crossplane-functions`), not by
-this stack.
+Function packages such as `function-auto-ready` are installed by
+`FunctionsStack`, not by `CrossplaneStack`.
 
 ### Next layer
 
 After Crossplane core is healthy, install the provider-specific packages you
-need, such as `CrossplaneAWSProvider`, `CrossplaneKubernetesProvider`, and
-`CrossplaneHelmProvider`. Those provider XRs can set
+need, such as `AWSProviderStack`, `KubernetesProviderStack`, and
+`HelmProviderStack`. Those provider XRs can set
 `spec.nodePool.enabled: true` to use this stack's Crossplane NodePool, whose
-default name remains `hops-crossplane`.
+default name remains `hops-crossplane`. Provider runtimes inherit the
+CrossplaneStack NodePool placement rather than creating their own pools.
 
 ## Development
 

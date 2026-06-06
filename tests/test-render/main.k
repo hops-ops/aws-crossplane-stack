@@ -132,7 +132,6 @@ _items = [
                     clusterName = "my-cluster"
                     nodePool = {
                         enabled = True
-                        nodeClassName = "default"
                     }
                 }
             }
@@ -148,7 +147,18 @@ _items = [
                         spec.template.spec.nodeClassRef = {
                             group = "eks.amazonaws.com"
                             kind = "NodeClass"
-                            name = "default"
+                            name = "hops-default"
+                        }
+                        spec.template.spec.requirements = [
+                            {key = "karpenter.sh/capacity-type", operator = "In", values = ["spot"]}
+                            {key = "eks.amazonaws.com/instance-category", operator = "In", values = ["c", "m", "r", "t"]}
+                            {key = "eks.amazonaws.com/instance-generation", operator = "Gte", values = ["4"]}
+                            {key = "kubernetes.io/os", operator = "In", values = ["linux"]}
+                        ]
+                        spec.disruption = {
+                            consolidationPolicy = "WhenEmptyOrUnderutilized"
+                            consolidateAfter = "30s"
+                            budgets = [{nodes = "100%"}]
                         }
                     }
                 }

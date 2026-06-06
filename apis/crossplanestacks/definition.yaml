@@ -90,20 +90,20 @@ spec:
                     description: NodePool name on the target cluster. Defaults to "hops-crossplane".
                     type: string
                   nodeClassName:
-                    description: Name of the EKS NodeClass to reference (e.g. "default").
+                    description: Name of the EKS NodeClass to reference. Defaults to "hops-default".
                     type: string
                   limits:
                     description: "NodePool resource limits (default: nodes=10)."
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   requirements:
-                    description: "Karpenter requirement overrides (default: m/c families, amd64, on-demand)."
+                    description: "Karpenter requirement overrides. Defaults to spot capacity, c/m/r/t instance categories, generation >= 4, linux, and architecture-flexible scheduling."
                     type: array
                     items:
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                   disruption:
-                    description: "Disruption config (default: WhenEmptyOrUnderutilized, 60s)."
+                    description: "Disruption config. Defaults to WhenEmptyOrUnderutilized after 30s with a 100% NodePool disruption budget."
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
           status:
@@ -125,6 +125,8 @@ spec:
               nodePool:
                 type: object
                 properties:
+                  enabled:
+                    type: boolean
                   ready:
                     type: boolean
                   name:

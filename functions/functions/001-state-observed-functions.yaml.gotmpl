@@ -1,0 +1,19 @@
+# code: language=yaml
+{{- $raw := $.observed.resources | default dict }}
+{{- $obsFns := dict }}
+{{- range $key, $fn := $state.functions }}
+  {{- $entry := get $raw (printf "function-%s" $fn.objectKey) | default dict }}
+  {{- $res := $entry.resource | default dict }}
+  {{- $st := $res.status | default dict }}
+  {{- $ready := false }}
+  {{- range ($st.conditions | default list) }}
+    {{- if and (eq .type "Ready") (eq .status "True") }}
+      {{- $ready = true }}
+    {{- end }}
+  {{- end }}
+  {{- $obsFns = set $obsFns $key (dict "ready" $ready) }}
+{{- end }}
+
+{{- $state = set $state "observed" (merge $state.observed (dict
+  "functions" $obsFns
+)) }}

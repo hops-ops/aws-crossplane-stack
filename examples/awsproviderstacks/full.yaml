@@ -1,0 +1,29 @@
+apiVersion: crossplane.hops.ops.com.ai/v1alpha1
+kind: AWSProviderStack
+metadata:
+  name: aws
+  namespace: default
+spec:
+  clusterName: my-cluster
+  kubernetesProviderConfigRef:
+    name: my-cluster
+  awsProviderConfigRef:
+    name: default
+  crossplaneNamespace: crossplane-system
+  aws:
+    accountId: "123456789012"
+    region: us-east-1
+  runtimeConfig:
+    requestsCpu: 200m
+    requestsMemory: 512Mi
+  nodePool:
+    enabled: true
+  providers:
+    iam: {}
+    s3: {}
+    ec2:
+      runtimeConfig:
+        cpu: "2"
+        memory: 2Gi
+        requestsCpu: 500m
+        requestsMemory: 1Gi

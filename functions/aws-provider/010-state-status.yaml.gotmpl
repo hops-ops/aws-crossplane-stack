@@ -1,0 +1,16 @@
+# code: language=yaml
+{{- $providerReady := $state.observed.provider.ready | default false }}
+{{- $status := dict
+  "ready" false
+  "provider" (dict
+    "ready" $providerReady
+  )
+}}
+
+{{- $status = merge $status (dict
+  "provider" (merge $status.provider (dict
+    "podIdentityReady" ($state.observed.podIdentity.ready | default false)
+  ))
+) }}
+
+{{- $state = set $state "status" $status }}

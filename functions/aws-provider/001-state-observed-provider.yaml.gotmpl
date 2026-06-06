@@ -1,0 +1,28 @@
+# code: language=yaml
+    {{- $raw := $.observed.resources | default dict }}
+    {{- $providerEntry := get $raw "provider-family-aws" | default dict }}
+    {{- $providerResource := $providerEntry.resource | default dict }}
+    {{- $providerStatus := $providerResource.status | default dict }}
+    {{- $providerReady := false }}
+    {{- range ($providerStatus.conditions | default list) }}
+      {{- if and (eq .type "Ready") (eq .status "True") }}
+        {{- $providerReady = true }}
+      {{- end }}
+    {{- end }}
+
+{{- $piEntry := get $raw "pod-identity" | default dict }}
+{{- $piResource := $piEntry.resource | default dict }}
+{{- $piStatus := $piResource.status | default dict }}
+{{- $piReady := false }}
+{{- range ($piStatus.conditions | default list) }}
+  {{- if and (eq .type "Ready") (eq .status "True") }}
+    {{- $piReady = true }}
+  {{- end }}
+{{- end }}
+    {{- $state = set $state "observed" (merge $state.observed (dict
+      "provider" (dict "ready" $providerReady)
+    )) }}
+
+    {{- $state = set $state "observed" (merge $state.observed (dict
+      "podIdentity" (dict "ready" $piReady)
+    )) }}

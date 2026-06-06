@@ -1,0 +1,10 @@
+# code: language=yaml
+{{- $providerReady := $state.observed.provider.ready | default false }}
+{{- $status := dict
+  "ready" false
+  "provider" (dict
+    "ready" $providerReady
+  )
+}}
+
+{{- $state = set $state "status" $status }}

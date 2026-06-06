@@ -1,0 +1,27 @@
+apiVersion: crossplane.hops.ops.com.ai/v1alpha1
+kind: FunctionsStack
+metadata:
+  name: functions
+  namespace: default
+spec:
+  clusterName: my-cluster
+  kubernetesProviderConfigRef:
+    name: my-cluster
+  # Schedule every function runtime onto the CrossplaneStack NodePool.
+  nodePool:
+    enabled: true
+  functions:
+    autoReady:
+      package: xpkg.crossplane.io/crossplane-contrib/function-auto-ready
+      version: v0.6.5
+      runtimeConfig:
+        requestsCpu: 15m
+        requestsMemory: 100Mi
+    patchAndTransform:
+      package: xpkg.crossplane.io/crossplane-contrib/function-patch-and-transform
+      version: v0.9.0
+      runtimeConfig:
+        requestsCpu: 50m
+        requestsMemory: 256Mi
+        cpu: "1"
+        memory: 512Mi

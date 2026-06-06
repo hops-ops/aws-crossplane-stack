@@ -1,0 +1,60 @@
+# code: language=yaml
+{{- if $state.enabled }}
+{{- $rc := $state.runtimeConfig }}
+{{- $reqCpu := $rc.requestsCpu | default "100m" }}
+{{- $reqMemory := $rc.requestsMemory | default "256Mi" }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+  name: drc-aws
+  annotations:
+    {{ setResourceNameAnnotation "drc-aws" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: pkg.crossplane.io/v1beta1
+      kind: DeploymentRuntimeConfig
+      metadata:
+        name: {{ $state.provider.runtimeConfigName }}
+      spec:
+        deploymentTemplate:
+          spec:
+            selector: {}
+            template:
+              spec:
+                containers:
+                - name: package-runtime
+                  resources:
+                    {{- if or $rc.cpu $rc.memory }}
+                    limits:
+                      {{- if $rc.cpu }}
+                      cpu: {{ $rc.cpu | quote }}
+                      {{- end }}
+                      {{- if $rc.memory }}
+                      memory: {{ $rc.memory | quote }}
+                      {{- end }}
+                    {{- end }}
+                    requests:
+                      cpu: {{ $reqCpu | quote }}
+                      memory: {{ $reqMemory | quote }}
+                {{- if eq "aws" "github" }}
+                {{- if $state.github.org }}
+                  env:
+                  - name: GITHUB_OWNER
+                    value: {{ $state.github.org }}
+                {{- end }}
+                {{- end }}
+                {{- if $state.scheduling.enabled }}
+                nodeSelector: {{ $state.scheduling.nodeSelector | toJson }}
+                tolerations: {{ $state.scheduling.tolerations | toJson }}
+                {{- end }}
+        serviceAccountTemplate:
+          metadata:
+            name: {{ $state.podIdentity.saName }}
+  providerConfigRef:
+    name: {{ $state.kubernetesProviderConfigRef.name }}
+    kind: {{ $state.kubernetesProviderConfigRef.kind }}
+{{- end }}

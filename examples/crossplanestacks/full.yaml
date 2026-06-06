@@ -21,9 +21,11 @@ spec:
           memory: 1Gi
   nodePool:
     enabled: true
-    nodeClassName: default
+    nodeClassName: hops-default
     limits:
       nodes: 10
+    # Example override for x86-only workloads. Omit requirements to use the
+    # default cheap, architecture-flexible Spot selection.
     requirements:
       - key: eks.amazonaws.com/instance-family
         operator: In
@@ -39,4 +41,6 @@ spec:
         values: ["spot"]
     disruption:
       consolidationPolicy: WhenEmptyOrUnderutilized
-      consolidateAfter: 60s
+      consolidateAfter: 30s
+      budgets:
+        - nodes: "100%"

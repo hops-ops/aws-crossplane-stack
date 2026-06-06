@@ -1,0 +1,27 @@
+# code: language=yaml
+{{- if $state.enabled }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+  name: providerconfig-helm
+  annotations:
+    {{ setResourceNameAnnotation "providerconfig-helm" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: helm.m.crossplane.io/v1beta1
+      kind: ProviderConfig
+      metadata:
+        name: {{ $state.providerConfig.name }}
+        namespace: {{ $state.providerConfig.namespace }}
+      spec:
+        credentials:
+          source: InjectedIdentity
+  providerConfigRef:
+    name: {{ $state.kubernetesProviderConfigRef.name }}
+    kind: {{ $state.kubernetesProviderConfigRef.kind }}
+
+{{- end }}
