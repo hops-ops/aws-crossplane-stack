@@ -38,7 +38,7 @@
 
     {{- $pkg := $spec.package | default dict }}
     {{- $packageName := $pkg.name | default "ghcr.io/hops-ops/provider-listmonk" }}
-    {{- $packageVersion := $pkg.version | default "v0.0.3" }}
+    {{- $packageVersion := $pkg.version | default "v0.0.4" }}
     {{- $skipDependencyResolution := true }}
     {{- if hasKey $pkg "skipDependencyResolution" }}
       {{- $skipDependencyResolution = $pkg.skipDependencyResolution }}

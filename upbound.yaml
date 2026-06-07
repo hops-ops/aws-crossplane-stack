@@ -39,7 +39,7 @@ spec:
   - apiVersion: pkg.crossplane.io/v1
     kind: Provider
     package: ghcr.io/hops-ops/provider-listmonk
-    version: '>=v0.0.3'
+    version: '>=v0.0.4'
   description: Installs Crossplane core plus the provider and function stack APIs
     used to bootstrap a target Crossplane control plane.
   license: Apache-2.0
