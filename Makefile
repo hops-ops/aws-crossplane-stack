@@ -89,9 +89,11 @@ validate\:all: generate-configuration
 	done
 
 # Shorthand aliases
-.PHONY: render validate generate-configuration
+.PHONY: render validate generate-configuration print-examples
 render: ; @$(MAKE) 'render:all'
 validate: ; @$(MAKE) generate-configuration 'validate:all'
+print-examples:
+	@printf '%s\n' $(EXAMPLES)
 
 # Single example targets
 render\:%:
