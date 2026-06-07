@@ -39,7 +39,7 @@ _items = [
                         kind = "Provider"
                         metadata.name = "provider-openpanel"
                         spec = {
-                            package = "ghcr.io/hops-ops/provider-openpanel:v1.0.1"
+                            package = "ghcr.io/hops-ops/provider-openpanel:v1.1.1"
                             skipDependencyResolution = True
                         }
                     }
