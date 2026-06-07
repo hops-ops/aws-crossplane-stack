@@ -39,7 +39,7 @@ _items = [
                         kind = "Provider"
                         metadata.name = "hops-ops-provider-listmonk"
                         spec = {
-                            package = "ghcr.io/hops-ops/provider-listmonk:v0.0.3"
+                            package = "ghcr.io/hops-ops/provider-listmonk:v0.0.4"
                             skipDependencyResolution = True
                         }
                     }
