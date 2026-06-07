@@ -1,0 +1,27 @@
+# code: language=yaml
+{{- range $key, $fn := $state.functions }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+  name: function-{{ $fn.objectKey }}
+  annotations:
+    {{ setResourceNameAnnotation (printf "function-%s" $fn.objectKey) }}
+  labels: {{ merge (dict "hops.ops.com.ai/function" $fn.name) $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: pkg.crossplane.io/v1
+      kind: Function
+      metadata:
+        name: {{ $fn.name }}
+      spec:
+        package: {{ printf "%s:%s" $fn.package $fn.version }}
+        skipDependencyResolution: {{ $fn.skipDependencyResolution }}
+        runtimeConfigRef:
+          name: {{ $fn.name }}
+  providerConfigRef:
+    name: {{ $state.kubernetesProviderConfigRef.name }}
+    kind: {{ $state.kubernetesProviderConfigRef.kind }}
+{{- end }}

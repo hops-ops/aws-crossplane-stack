@@ -1,5 +1,5 @@
 # code: language=yaml
-{{- if $state.nodePool.enabled }}
+{{- if eq $state.nodePool.enabled true }}
 ---
 apiVersion: kubernetes.m.crossplane.io/v1alpha1
 kind: Object

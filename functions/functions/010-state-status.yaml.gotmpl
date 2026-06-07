@@ -1,0 +1,19 @@
+# code: language=yaml
+{{- $allReady := true }}
+{{- $count := 0 }}
+{{- $fnStatus := dict }}
+{{- range $key, $obs := ($state.observed.functions | default dict) }}
+  {{- $count = add $count 1 }}
+  {{- $fnStatus = set $fnStatus $key (dict "ready" $obs.ready) }}
+  {{- if not $obs.ready }}
+    {{- $allReady = false }}
+  {{- end }}
+{{- end }}
+{{- if eq $count 0 }}
+  {{- $allReady = false }}
+{{- end }}
+
+{{- $state = set $state "status" (dict
+  "ready" $allReady
+  "functions" $fnStatus
+) }}

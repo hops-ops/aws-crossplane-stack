@@ -1,0 +1,107 @@
+# code: language=yaml
+{{- $xr := getCompositeResource . }}
+{{- $metadata := $xr.metadata | default dict }}
+{{- $spec := $xr.spec | default dict }}
+
+{{- $name := $metadata.name | default "crossplane-functions-stack" }}
+{{- $clusterName := $spec.clusterName | default $name }}
+{{- $managementPolicies := $spec.managementPolicies | default (list "*") }}
+
+{{- $defaultLabels := dict
+  "hops.ops.com.ai/managed" "true"
+  (printf "hops.ops.com.ai/%s" (lower $xr.kind)) $name
+}}
+{{- $labels := merge $defaultLabels ($spec.labels | default dict) }}
+{{- $defaultTags := dict
+  "hops.ops.com.ai/managed" "true"
+  (printf "hops.ops.com.ai/%s" (lower $xr.kind)) $name
+}}
+{{- $tags := merge $defaultTags ($spec.tags | default dict) }}
+
+{{- $cpNamespace := $spec.crossplaneNamespace | default "crossplane-system" }}
+{{- $kpcRef := $spec.kubernetesProviderConfigRef | default dict }}
+{{- $kpcRef = dict
+  "name" ($kpcRef.name | default $clusterName)
+  "kind" ($kpcRef.kind | default "ProviderConfig")
+}}
+
+{{/* Top-level scheduling, applied to every function runtime DRC. */}}
+{{- $nodePoolSpec := $spec.nodePool | default dict }}
+{{- $nodePoolEnabled := false }}
+{{- if hasKey $nodePoolSpec "enabled" }}
+  {{- $nodePoolEnabled = $nodePoolSpec.enabled }}
+{{- end }}
+{{- $schedulingSpec := $spec.scheduling | default dict }}
+{{- $schedulingEnabled := $nodePoolEnabled }}
+{{- if or (hasKey $schedulingSpec "nodeSelector") (hasKey $schedulingSpec "tolerations") }}
+  {{- $schedulingEnabled = true }}
+{{- end }}
+{{- $nodeSelector := $schedulingSpec.nodeSelector | default (dict "workload-type" "crossplane") }}
+{{- $tolerations := $schedulingSpec.tolerations | default (list
+  (dict "key" "crossplane" "operator" "Equal" "value" "true" "effect" "NoSchedule")
+) }}
+
+{{/* Resolve the functions map. Empty input defaults to function-auto-ready. */}}
+{{- $functionsInput := $spec.functions | default dict }}
+{{- if not $functionsInput }}
+  {{- $functionsInput = dict "autoReady" (dict
+    "package" "xpkg.crossplane.io/crossplane-contrib/function-auto-ready"
+    "version" "v0.6.5"
+  ) }}
+{{- end }}
+
+{{- $resolved := dict }}
+{{- range $key, $raw := $functionsInput }}
+  {{- $fn := $raw | default dict }}
+  {{- $enabled := true }}
+  {{- if hasKey $fn "enabled" }}
+    {{- $enabled = $fn.enabled }}
+  {{- end }}
+  {{- if $enabled }}
+    {{- $pkg := $fn.package | default "" }}
+    {{- $version := $fn.version | default "" }}
+    {{- $skip := true }}
+    {{- if hasKey $fn "skipDependencyResolution" }}
+      {{- $skip = $fn.skipDependencyResolution }}
+    {{- end }}
+    {{/* Derive the canonical Function name (<org>-<name>) from the package path,
+         matching Crossplane's package-manager naming so compositions can reference it. */}}
+    {{- $parts := splitList "/" $pkg }}
+    {{- $derivedName := last $parts }}
+    {{- if ge (len $parts) 2 }}
+      {{- $derivedName = printf "%s-%s" (index $parts (sub (len $parts) 2)) (last $parts) }}
+    {{- end }}
+    {{- $rc := $fn.runtimeConfig | default dict }}
+    {{- $resolved = set $resolved $key (dict
+      "objectKey" (kebabcase $key)
+      "name" $derivedName
+      "package" $pkg
+      "version" $version
+      "skipDependencyResolution" $skip
+      "requestsCpu" ($rc.requestsCpu | default "15m")
+      "requestsMemory" ($rc.requestsMemory | default "100Mi")
+      "cpu" ($rc.cpu | default "")
+      "memory" ($rc.memory | default "")
+    ) }}
+  {{- end }}
+{{- end }}
+
+{{- $state := dict
+  "name" $name
+  "clusterName" $clusterName
+  "managementPolicies" $managementPolicies
+  "labels" $labels
+  "tags" $tags
+  "kubernetesProviderConfigRef" $kpcRef
+  "crossplane" (dict
+    "namespace" $cpNamespace
+  )
+  "scheduling" (dict
+    "enabled" $schedulingEnabled
+    "nodeSelector" $nodeSelector
+    "tolerations" $tolerations
+  )
+  "functions" $resolved
+  "observed" (dict)
+  "status" (dict)
+}}

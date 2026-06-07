@@ -8,17 +8,19 @@ CONFIGURATION := $(XRD_DIR)/configuration.yaml
 EXAMPLE_DEFAULT := examples/crossplanestacks/standard.yaml
 RENDER_TESTS := $(wildcard tests/test-*)
 E2E_TESTS := $(wildcard tests/e2etest-*)
+API_DIRS := $(sort $(dir $(wildcard apis/*/definition.yaml)))
 
 clean:
 	rm -rf _output
 	rm -rf .up
-	rm -f $(CONFIGURATION)
+	rm -f $(API_DIRS:%=%configuration.yaml)
 
 build:
 	up project build
 
 generate-configuration:
 	@set -euo pipefail; \
+	rm -f $(API_DIRS:%=%configuration.yaml); \
 	hops validate generate-configuration --path . --api-path "$(XRD_DIR)"
 
 # Examples list - mirrors GitHub Actions workflow
@@ -26,71 +28,65 @@ generate-configuration:
 EXAMPLES := \
     examples/crossplanestacks/minimal.yaml:: \
     examples/crossplanestacks/standard.yaml:: \
-    examples/crossplanestacks/full.yaml::
+    examples/crossplanestacks/full.yaml:: \
+    examples/awsproviderstacks/minimal.yaml:: \
+    examples/awsproviderstacks/full.yaml:: \
+    examples/functionsstacks/minimal.yaml:: \
+    examples/functionsstacks/full.yaml:: \
+    examples/githubproviderstacks/minimal.yaml:: \
+    examples/githubproviderstacks/full.yaml:: \
+    examples/helmproviderstacks/minimal.yaml:: \
+    examples/helmproviderstacks/full.yaml:: \
+    examples/kubernetesproviderstacks/minimal.yaml:: \
+    examples/kubernetesproviderstacks/full.yaml:: \
+    examples/listmonkproviderstacks/minimal.yaml:: \
+    examples/listmonkproviderstacks/full.yaml:: \
+    examples/openpanelproviderstacks/minimal.yaml:: \
+    examples/openpanelproviderstacks/full.yaml:: \
+    examples/zitadelproviderstacks/minimal.yaml:: \
+    examples/zitadelproviderstacks/full.yaml::
 
-# Render all examples (parallel execution, output shown per-job when complete)
+# Render all examples.
 render\:all:
-	@tmpdir=$$(mktemp -d); \
-	pids=""; \
+	@set -euo pipefail; \
 	for entry in $(EXAMPLES); do \
 		example=$${entry%%::*}; \
 		observed=$${entry#*::}; \
-		outfile="$$tmpdir/$$(echo $$entry | tr '/:' '__')"; \
-		( \
-			if [ -n "$$observed" ]; then \
-				echo "=== Rendering $$example with observed-resources $$observed ==="; \
-				up composition render --xrd=$(DEFINITION) $(COMPOSITION) $$example --observed-resources=$$observed; \
-			else \
-				echo "=== Rendering $$example ==="; \
-				up composition render --xrd=$(DEFINITION) $(COMPOSITION) $$example; \
-			fi; \
-			echo "" \
-		) > "$$outfile" 2>&1 & \
-		pids="$$pids $$!:$$outfile"; \
-	done; \
-	failed=0; \
-	for pair in $$pids; do \
-		pid=$${pair%%:*}; \
-		outfile=$${pair#*:}; \
-		if ! wait $$pid; then failed=1; fi; \
-		cat "$$outfile"; \
-	done; \
-	rm -rf "$$tmpdir"; \
-	exit $$failed
+		api_dir=$$(echo "$$example" | awk -F/ '{print "apis/" $$2}'); \
+		composition="$$api_dir/composition.yaml"; \
+		definition="$$api_dir/definition.yaml"; \
+		if [ -n "$$observed" ]; then \
+			echo "=== Rendering $$example with observed-resources $$observed ==="; \
+			up composition render --xrd=$$definition $$composition $$example --observed-resources=$$observed; \
+		else \
+			echo "=== Rendering $$example (api=$$api_dir) ==="; \
+			up composition render --xrd=$$definition $$composition $$example; \
+		fi; \
+		echo ""; \
+	done
 
-# Validate all examples (parallel execution, output shown per-job when complete)
+# Validate all examples.
 validate\:all: generate-configuration
-	@tmpdir=$$(mktemp -d); \
-	pids=""; \
+	@set -euo pipefail; \
 	for entry in $(EXAMPLES); do \
 		example=$${entry%%::*}; \
 		observed=$${entry#*::}; \
-		outfile="$$tmpdir/$$(echo $$entry | tr '/:' '__')"; \
-		( \
-			if [ -n "$$observed" ]; then \
-				echo "=== Validating $$example with observed-resources $$observed ==="; \
-				up composition render --xrd=$(DEFINITION) $(COMPOSITION) $$example \
-					--observed-resources=$$observed --include-full-xr --quiet | \
-					crossplane beta validate $(CONFIGURATION),$(XRD_DIR) --error-on-missing-schemas -; \
-			else \
-				echo "=== Validating $$example ==="; \
-				up composition render --xrd=$(DEFINITION) $(COMPOSITION) $$example \
-					--include-full-xr --quiet | \
-					crossplane beta validate $(CONFIGURATION),$(XRD_DIR) --error-on-missing-schemas -; \
-			fi; \
-			echo "" \
-		) > "$$outfile" 2>&1 & \
-		pids="$$pids $$!:$$outfile"; \
-	done; \
-	failed=0; \
-	for pair in $$pids; do \
-		pid=$${pair%%:*}; \
-		outfile=$${pair#*:}; \
-		if ! wait $$pid; then failed=1; fi; \
-		cat "$$outfile"; \
-	done; \
-	rm -rf "$$tmpdir"; \
-	exit $$failed
+		api_dir=$$(echo "$$example" | awk -F/ '{print "apis/" $$2}'); \
+		composition="$$api_dir/composition.yaml"; \
+		definition="$$api_dir/definition.yaml"; \
+		if [ -n "$$observed" ]; then \
+			echo "=== Validating $$example with observed-resources $$observed ==="; \
+			up composition render --xrd=$$definition $$composition $$example \
+				--observed-resources=$$observed --include-full-xr --quiet | \
+				crossplane beta validate $(CONFIGURATION),$$api_dir --error-on-missing-schemas -; \
+		else \
+			echo "=== Validating $$example (api=$$api_dir) ==="; \
+			up composition render --xrd=$$definition $$composition $$example \
+				--include-full-xr --quiet | \
+				crossplane beta validate $(CONFIGURATION),$$api_dir --error-on-missing-schemas -; \
+		fi; \
+		echo ""; \
+	done
 
 # Shorthand aliases
 .PHONY: render validate generate-configuration

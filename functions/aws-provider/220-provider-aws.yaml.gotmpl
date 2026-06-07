@@ -1,0 +1,27 @@
+# code: language=yaml
+{{- if $state.enabled }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+  name: provider-family-aws
+  annotations:
+    {{ setResourceNameAnnotation "provider-family-aws" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: pkg.crossplane.io/v1
+      kind: Provider
+      metadata:
+        name: crossplane-contrib-provider-family-aws
+      spec:
+        package: {{ printf "%s:%s" $state.package.name $state.package.version }}
+        skipDependencyResolution: {{ $state.package.skipDependencyResolution }}
+        runtimeConfigRef:
+          name: {{ $state.provider.runtimeConfigName }}
+  providerConfigRef:
+    name: {{ $state.kubernetesProviderConfigRef.name }}
+    kind: {{ $state.kubernetesProviderConfigRef.kind }}
+{{- end }}

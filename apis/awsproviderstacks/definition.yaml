@@ -1,0 +1,155 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: awsproviderstacks.crossplane.hops.ops.com.ai
+spec:
+  group: crossplane.hops.ops.com.ai
+  names:
+    kind: AWSProviderStack
+    plural: awsproviderstacks
+  scope: Namespaced
+  defaultCompositeDeletePolicy: Foreground
+  versions:
+  - name: v1alpha1
+    referenceable: true
+    served: true
+    schema:
+      openAPIV3Schema:
+        description: Installs the Crossplane AWS provider family, selected AWS family providers, PodIdentity, and AWS ProviderConfig.
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - clusterName
+            properties:
+              clusterName:
+                description: Target cluster name. Used as the default for management ProviderConfig references.
+                type: string
+              enabled:
+                description: Render this provider package. Defaults to true.
+                type: boolean
+              managementPolicies:
+                type: array
+                items:
+                  type: string
+                default: ["*"]
+              labels:
+                type: object
+                additionalProperties:
+                  type: string
+                x-kubernetes-preserve-unknown-fields: true
+              tags:
+                type: object
+                additionalProperties:
+                  type: string
+                x-kubernetes-preserve-unknown-fields: true
+              kubernetesProviderConfigRef:
+                description: Management-plane Kubernetes ProviderConfig targeting the cluster where Crossplane is installed.
+                type: object
+                properties:
+                  name:
+                    type: string
+                  kind:
+                    type: string
+                    enum: [ProviderConfig, ClusterProviderConfig]
+              crossplaneNamespace:
+                description: Namespace where target Crossplane is installed. Defaults to crossplane-system.
+                type: string
+              package:
+                description: Provider package override.
+                type: object
+                properties:
+                  name:
+                    type: string
+                  version:
+                    type: string
+                  skipDependencyResolution:
+                    type: boolean
+              runtimeConfig:
+                description: Resource requests and limits for the provider runtime.
+                type: object
+                properties:
+                  cpu:
+                    type: string
+                  memory:
+                    type: string
+                  requestsCpu:
+                    type: string
+                  requestsMemory:
+                    type: string
+              nodePool:
+                description: Schedule this provider runtime onto the CrossplaneStack NodePool. This does not create or rename the NodePool; CrossplaneStack defaults it to hops-crossplane.
+                type: object
+                properties:
+                  enabled:
+                    description: Use the CrossplaneStack NodePool selector and toleration.
+                    type: boolean
+              scheduling:
+                description: Optional provider runtime placement overrides. When nodePool.enabled is true, these override the CrossplaneStack NodePool selector or toleration defaults.
+                type: object
+                properties:
+                  nodeSelector:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    x-kubernetes-preserve-unknown-fields: true
+                  tolerations:
+                    type: array
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+              providerConfigName:
+                description: Target AWS ProviderConfig name. Defaults to clusterName.
+                type: string
+              awsProviderConfigRef:
+                description: Management-plane AWS ProviderConfig used by PodIdentity.
+                type: object
+                properties:
+                  name:
+                    type: string
+                  kind:
+                    type: string
+                    enum: [ProviderConfig, ClusterProviderConfig]
+              aws:
+                description: AWS configuration used for PodIdentity and provider defaults.
+                type: object
+                required:
+                - region
+                properties:
+                  accountId:
+                    type: string
+                  clusterName:
+                    description: EKS cluster name if different from spec.clusterName.
+                    type: string
+                  region:
+                    type: string
+                  permissionsBoundary:
+                    type: string
+                  rolePrefix:
+                    type: string
+                  tags:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    x-kubernetes-preserve-unknown-fields: true
+              providers:
+                description: Map of AWS provider-family suffixes to install. Also accepts the legacy providers.aws.providers shape.
+                type: object
+                additionalProperties:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            properties:
+              ready:
+                type: boolean
+              provider:
+                type: object
+                properties:
+                  ready:
+                    type: boolean
+                  podIdentityReady:
+                    type: boolean
+        required: [spec]

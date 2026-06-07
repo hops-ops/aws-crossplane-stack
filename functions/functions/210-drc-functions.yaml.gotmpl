@@ -1,0 +1,50 @@
+# code: language=yaml
+{{- range $key, $fn := $state.functions }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+  name: drc-{{ $fn.objectKey }}
+  annotations:
+    {{ setResourceNameAnnotation (printf "drc-%s" $fn.objectKey) }}
+  labels: {{ merge (dict "hops.ops.com.ai/function" $fn.name) $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: pkg.crossplane.io/v1beta1
+      kind: DeploymentRuntimeConfig
+      metadata:
+        name: {{ $fn.name }}
+      spec:
+        deploymentTemplate:
+          spec:
+            selector: {}
+            template:
+              spec:
+                containers:
+                - name: package-runtime
+                  resources:
+                    {{- if or $fn.cpu $fn.memory }}
+                    limits:
+                      {{- if $fn.cpu }}
+                      cpu: {{ $fn.cpu | quote }}
+                      {{- end }}
+                      {{- if $fn.memory }}
+                      memory: {{ $fn.memory | quote }}
+                      {{- end }}
+                    {{- end }}
+                    requests:
+                      cpu: {{ $fn.requestsCpu | quote }}
+                      memory: {{ $fn.requestsMemory | quote }}
+                {{- if $state.scheduling.enabled }}
+                nodeSelector: {{ $state.scheduling.nodeSelector | toJson }}
+                tolerations: {{ $state.scheduling.tolerations | toJson }}
+                {{- end }}
+        serviceAccountTemplate:
+          metadata:
+            name: {{ $fn.name }}
+  providerConfigRef:
+    name: {{ $state.kubernetesProviderConfigRef.name }}
+    kind: {{ $state.kubernetesProviderConfigRef.kind }}
+{{- end }}

@@ -1,0 +1,135 @@
+# code: language=yaml
+    {{- $xr := getCompositeResource . }}
+    {{- $metadata := $xr.metadata | default dict }}
+    {{- $spec := $xr.spec | default dict }}
+
+    {{- $name := $metadata.name | default "crossplane-aws-provider-stack" }}
+    {{- $clusterName := $spec.clusterName | default $name }}
+    {{- $managementPolicies := $spec.managementPolicies | default (list "*") }}
+
+    {{- $defaultLabels := dict
+      "hops.ops.com.ai/managed" "true"
+      (printf "hops.ops.com.ai/%s" (lower $xr.kind)) $name
+    }}
+    {{- $labels := merge $defaultLabels ($spec.labels | default dict) }}
+    {{- $defaultTags := dict
+      "hops.ops.com.ai/managed" "true"
+      (printf "hops.ops.com.ai/%s" (lower $xr.kind)) $name
+    }}
+    {{- $tags := merge $defaultTags ($spec.tags | default dict) }}
+
+    {{- $legacyRoot := $spec.providers | default dict }}
+    {{- $legacy := get $legacyRoot "aws" | default dict }}
+
+    {{- $enabled := true }}
+    {{- if hasKey $legacy "enabled" }}
+      {{- $enabled = $legacy.enabled }}
+    {{- end }}
+    {{- if hasKey $spec "enabled" }}
+      {{- $enabled = $spec.enabled }}
+    {{- end }}
+
+    {{- $cpNamespace := $spec.crossplaneNamespace | default "crossplane-system" }}
+    {{- $kubernetesProviderConfigRef := $spec.kubernetesProviderConfigRef | default dict }}
+    {{- $kubernetesProviderConfigRef = dict
+      "name" ($kubernetesProviderConfigRef.name | default $clusterName)
+      "kind" ($kubernetesProviderConfigRef.kind | default "ProviderConfig")
+    }}
+
+    {{- $pkg := $spec.package | default dict }}
+    {{- $packageName := $pkg.name | default "xpkg.crossplane.io/crossplane-contrib/provider-family-aws" }}
+    {{- $packageVersion := $pkg.version | default "v2.5.0" }}
+    {{- $skipDependencyResolution := true }}
+    {{- if hasKey $pkg "skipDependencyResolution" }}
+      {{- $skipDependencyResolution = $pkg.skipDependencyResolution }}
+    {{- end }}
+
+    {{- $runtimeConfig := $spec.runtimeConfig | default ($legacy.runtimeConfig | default dict) }}
+    {{- $nodePoolSpec := $spec.nodePool | default dict }}
+    {{- $nodePoolEnabled := false }}
+    {{- if hasKey $nodePoolSpec "enabled" }}
+      {{- $nodePoolEnabled = $nodePoolSpec.enabled }}
+    {{- end }}
+    {{- $schedulingSpec := $spec.scheduling | default dict }}
+    {{- $schedulingEnabled := $nodePoolEnabled }}
+    {{- if or (hasKey $schedulingSpec "nodeSelector") (hasKey $schedulingSpec "tolerations") }}
+      {{- $schedulingEnabled = true }}
+    {{- end }}
+    {{- $nodeSelector := $schedulingSpec.nodeSelector | default (dict "workload-type" "crossplane") }}
+    {{- $tolerations := $schedulingSpec.tolerations | default (list
+      (dict "key" "crossplane" "operator" "Equal" "value" "true" "effect" "NoSchedule")
+    ) }}
+
+{{- $aws := $spec.aws | default dict }}
+{{- $awsAccountId := $aws.accountId | default "" }}
+{{- $awsClusterName := $aws.clusterName | default $clusterName }}
+{{- $awsRegion := $aws.region | default "us-east-1" }}
+{{- $awsPermissionsBoundary := $aws.permissionsBoundary | default "" }}
+{{- $awsRolePrefix := $aws.rolePrefix | default "" }}
+{{- $awsTags := merge (dict) $tags ($aws.tags | default dict) }}
+{{- $awsProviderConfigRef := $spec.awsProviderConfigRef | default dict }}
+{{- $awsProviderConfigRef = dict
+  "name" ($awsProviderConfigRef.name | default "default")
+  "kind" ($awsProviderConfigRef.kind | default "ProviderConfig")
+}}
+{{- $providerConfigName := $spec.providerConfigName | default ($legacy.providerConfigName | default $clusterName) }}
+{{- $selectedProviders := $spec.providers | default dict }}
+{{- if and (hasKey $selectedProviders "aws") (hasKey ($selectedProviders.aws | default dict) "providers") }}
+  {{- $selectedProviders = $selectedProviders.aws.providers }}
+{{- end }}
+{{- $selectedProviders = $selectedProviders | default dict }}
+{{- $podIdentitySaName := printf "%s-crossplane-aws" $clusterName }}
+
+    {{- $state := dict
+      "name" $name
+      "clusterName" $clusterName
+      "enabled" $enabled
+      "managementPolicies" $managementPolicies
+      "labels" $labels
+      "tags" $tags
+      "kubernetesProviderConfigRef" $kubernetesProviderConfigRef
+      "crossplane" (dict
+        "namespace" $cpNamespace
+      )
+      "package" (dict
+        "name" $packageName
+        "version" $packageVersion
+        "skipDependencyResolution" $skipDependencyResolution
+      )
+      "runtimeConfig" $runtimeConfig
+      "nodePool" (dict
+        "enabled" $nodePoolEnabled
+      )
+      "scheduling" (dict
+        "enabled" $schedulingEnabled
+        "nodeSelector" $nodeSelector
+        "tolerations" $tolerations
+      )
+      "provider" (dict
+        "id" "aws"
+        "objectName" "provider-family-aws"
+        "manifestName" "crossplane-contrib-provider-family-aws"
+        "runtimeConfigName" (printf "%s-aws" $clusterName)
+      )
+      "observed" (dict)
+      "status" (dict)
+    }}
+    {{- if eq "aws" "zitadel" }}
+      {{- $state = set $state "provider" (merge $state.provider (dict "runtimeConfigName" "zitadel")) }}
+    {{- end }}
+
+    {{- $state = set $state "awsProviderConfigRef" $awsProviderConfigRef }}
+    {{- $state = set $state "aws" (dict
+      "accountId" $awsAccountId
+      "clusterName" $awsClusterName
+      "region" $awsRegion
+      "permissionsBoundary" $awsPermissionsBoundary
+      "rolePrefix" $awsRolePrefix
+      "tags" $awsTags
+      "selectedProviders" $selectedProviders
+    ) }}
+    {{- $state = set $state "podIdentity" (dict
+      "saName" $podIdentitySaName
+      "saNamespace" $cpNamespace
+    ) }}
+    {{- $state = set $state "provider" (merge $state.provider (dict "configName" $providerConfigName)) }}

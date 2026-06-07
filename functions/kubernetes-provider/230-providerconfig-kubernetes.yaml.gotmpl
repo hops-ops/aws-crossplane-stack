@@ -1,0 +1,30 @@
+# code: language=yaml
+{{- if $state.enabled }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+  name: providerconfig-kubernetes
+  annotations:
+    {{ setResourceNameAnnotation "providerconfig-kubernetes" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: kubernetes.m.crossplane.io/v1alpha1
+      kind: ProviderConfig
+      metadata:
+        name: {{ $state.providerConfig.name }}
+        namespace: {{ $state.providerConfig.namespace }}
+      spec:
+        credentials:
+          source: InjectedIdentity
+  providerConfigRef:
+    name: {{ $state.kubernetesProviderConfigRef.name }}
+    kind: {{ $state.kubernetesProviderConfigRef.kind }}
+
+  readiness:
+    policy: DeriveFromCelQuery
+    celQuery: "has(object.metadata.uid)"
+{{- end }}

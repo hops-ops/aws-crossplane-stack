@@ -1,17 +1,28 @@
 # aws-crossplane-stack
 
-Installs Crossplane via Helm and configures AWS (IRSA), Kubernetes, Helm, and GitHub providers with toggle flags.
+Installs Crossplane core via Helm and publishes the provider/function stack APIs
+used to bootstrap a target Crossplane control plane.
 
 ## Overview
 
-Single unified XRD that replaces multiple separate configurations for Crossplane + providers. Creates:
+`CrossplaneStack` is the core layer for a target cluster. It creates:
 
-1. **Crossplane Helm Release** — Crossplane from the stable chart repo
-2. **AWS Provider** — IRSA IAM Role + ProviderConfig + DRC + provider-family-aws + sub-providers
-3. **Kubernetes Provider** — ProviderConfig (InjectedIdentity) + DRC + provider-kubernetes
-4. **Helm Provider** — ProviderConfig (InjectedIdentity) + DRC + provider-helm
-5. **GitHub Provider** (optional) — ProviderConfig + DRC + provider-upjet-github + ExternalSecret
-6. **Functions** — function-auto-ready
+1. **Crossplane Helm Release** — Crossplane from the stable chart repo.
+2. **Optional NodePool Object** — dedicated scheduling for Crossplane core pods.
+3. **Usage safeguard** — deletion ordering when the NodePool is enabled.
+
+It does not render target-cluster Provider packages, Function packages,
+ProviderConfigs, DeploymentRuntimeConfigs, or PodIdentity. Those concerns stay
+separate XRs in this same configuration package:
+
+- `FunctionsStack`
+- `AWSProviderStack`
+- `GitHubProviderStack`
+- `HelmProviderStack`
+- `KubernetesProviderStack`
+- `ListmonkProviderStack`
+- `OpenPanelProviderStack`
+- `ZitadelProviderStack`
 
 ## Usage
 
@@ -25,13 +36,9 @@ metadata:
   namespace: default
 spec:
   clusterName: my-cluster
-  aws:
-    accountId: "123456789012"
-    oidc: oidc.eks.us-east-1.amazonaws.com/id/EXAMPLE123
-    region: us-east-1
 ```
 
-### With GitHub provider and sub-providers
+### With dedicated Crossplane nodes
 
 ```yaml
 apiVersion: aws.hops.ops.com.ai/v1alpha1
@@ -43,23 +50,35 @@ spec:
   clusterName: production
   labels:
     team: platform
-  tags:
-    environment: production
-  aws:
-    accountId: "123456789012"
-    oidc: oidc.eks.us-east-1.amazonaws.com/id/EXAMPLE123
-    region: us-east-1
-  providers:
-    aws:
-      providers:
-        iam: {}
-        s3: {}
-        ec2: {}
-    github:
-      enabled: true
-      githubOrg: my-org
-      secretName: github-provider-token
+  install:
+    values:
+      resourcesCrossplane:
+        requests:
+          cpu: 500m
+          memory: 1Gi
+  nodePool:
+    enabled: true
+    nodeClassName: hops-default
 ```
+
+When enabled, the Crossplane NodePool defaults to cheap, flexible Spot capacity:
+c/m/r/t instance categories, generation 4 or newer, Linux, and no architecture
+pin. Workloads that require x86 images should set
+`nodeSelector: {kubernetes.io/arch: amd64}` or equivalent affinity.
+
+### Function packages
+
+Function packages such as `function-auto-ready` are installed by
+`FunctionsStack`, not by `CrossplaneStack`.
+
+### Next layer
+
+After Crossplane core is healthy, install the provider-specific packages you
+need, such as `AWSProviderStack`, `KubernetesProviderStack`, and
+`HelmProviderStack`. Those provider XRs can set
+`spec.nodePool.enabled: true` to use this stack's Crossplane NodePool, whose
+default name remains `hops-crossplane`. Provider runtimes inherit the
+CrossplaneStack NodePool placement rather than creating their own pools.
 
 ## Development
 

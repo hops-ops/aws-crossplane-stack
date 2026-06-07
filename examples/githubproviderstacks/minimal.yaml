@@ -1,0 +1,10 @@
+apiVersion: crossplane.hops.ops.com.ai/v1alpha1
+kind: GitHubProviderStack
+metadata:
+  name: github
+  namespace: default
+spec:
+  clusterName: my-cluster
+  kubernetesProviderConfigRef:
+    name: my-cluster
+

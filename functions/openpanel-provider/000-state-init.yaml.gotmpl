@@ -1,0 +1,138 @@
+# code: language=yaml
+    {{- $xr := getCompositeResource . }}
+    {{- $metadata := $xr.metadata | default dict }}
+    {{- $spec := $xr.spec | default dict }}
+
+    {{- $name := $metadata.name | default "crossplane-openpanel-provider-stack" }}
+    {{- $clusterName := $spec.clusterName | default $name }}
+    {{- $managementPolicies := $spec.managementPolicies | default (list "*") }}
+
+    {{- $defaultLabels := dict
+      "hops.ops.com.ai/managed" "true"
+      (printf "hops.ops.com.ai/%s" (lower $xr.kind)) $name
+    }}
+    {{- $labels := merge $defaultLabels ($spec.labels | default dict) }}
+    {{- $defaultTags := dict
+      "hops.ops.com.ai/managed" "true"
+      (printf "hops.ops.com.ai/%s" (lower $xr.kind)) $name
+    }}
+    {{- $tags := merge $defaultTags ($spec.tags | default dict) }}
+
+    {{- $legacyRoot := $spec.providers | default dict }}
+    {{- $legacy := get $legacyRoot "openpanel" | default dict }}
+
+    {{- $enabled := true }}
+    {{- if hasKey $legacy "enabled" }}
+      {{- $enabled = $legacy.enabled }}
+    {{- end }}
+    {{- if hasKey $spec "enabled" }}
+      {{- $enabled = $spec.enabled }}
+    {{- end }}
+
+    {{- $cpNamespace := $spec.crossplaneNamespace | default "crossplane-system" }}
+    {{- $kubernetesProviderConfigRef := $spec.kubernetesProviderConfigRef | default dict }}
+    {{- $kubernetesProviderConfigRef = dict
+      "name" ($kubernetesProviderConfigRef.name | default $clusterName)
+      "kind" ($kubernetesProviderConfigRef.kind | default "ProviderConfig")
+    }}
+
+    {{- $pkg := $spec.package | default dict }}
+    {{- $packageName := $pkg.name | default "ghcr.io/hops-ops/provider-openpanel" }}
+    {{- $packageVersion := $pkg.version | default "v1.0.1" }}
+    {{- $skipDependencyResolution := true }}
+    {{- if hasKey $pkg "skipDependencyResolution" }}
+      {{- $skipDependencyResolution = $pkg.skipDependencyResolution }}
+    {{- end }}
+
+    {{- $runtimeConfig := $spec.runtimeConfig | default ($legacy.runtimeConfig | default dict) }}
+    {{- $nodePoolSpec := $spec.nodePool | default dict }}
+    {{- $nodePoolEnabled := false }}
+    {{- if hasKey $nodePoolSpec "enabled" }}
+      {{- $nodePoolEnabled = $nodePoolSpec.enabled }}
+    {{- end }}
+    {{- $schedulingSpec := $spec.scheduling | default dict }}
+    {{- $schedulingDefaultNodeSelector := dict }}
+    {{- $schedulingDefaultTolerations := list }}
+    {{- if $nodePoolEnabled }}
+      {{- $schedulingDefaultNodeSelector = dict "workload-type" "crossplane" }}
+      {{- $schedulingDefaultTolerations = list (dict "key" "crossplane" "operator" "Equal" "value" "true" "effect" "NoSchedule") }}
+    {{- end }}
+    {{- $schedulingEnabled := $nodePoolEnabled }}
+    {{- if or (hasKey $schedulingSpec "nodeSelector") (hasKey $schedulingSpec "tolerations") }}
+      {{- $schedulingEnabled = true }}
+    {{- end }}
+    {{- $nodeSelector := $schedulingSpec.nodeSelector | default $schedulingDefaultNodeSelector }}
+    {{- $tolerations := $schedulingSpec.tolerations | default $schedulingDefaultTolerations }}
+
+{{- $providerConfigName := $spec.providerConfigName | default ($legacy.providerConfigName | default "openpanel") }}
+{{- $providerConfigNamespace := $spec.providerConfigNamespace | default ($legacy.providerConfigNamespace | default "default") }}
+{{- $secretName := $spec.secretName | default ($legacy.secretName | default "") }}
+{{- $secretNamespace := $spec.secretNamespace | default ($legacy.secretNamespace | default $cpNamespace) }}
+{{- $secretKey := $spec.secretKey | default ($legacy.secretKey | default "credentials") }}
+{{- $externalSecret := $spec.externalSecret | default ($legacy.externalSecret | default dict) }}
+{{- $externalSecretEnabled := true }}
+{{- if hasKey $externalSecret "enabled" }}
+  {{- $externalSecretEnabled = $externalSecret.enabled }}
+{{- end }}
+{{- $externalSecretRemoteKey := $externalSecret.remoteKey | default "" }}
+{{- if and (eq "openpanel" "github") (not $externalSecretRemoteKey) }}
+  {{- $externalSecretRemoteKey = "github-provider-token" }}
+{{- end }}
+{{- $externalSecretStoreName := $externalSecret.secretStoreName | default "default" }}
+{{- $externalSecretStoreKind := $externalSecret.secretStoreKind | default "ClusterSecretStore" }}
+{{- $externalSecretTargetKey := $externalSecret.targetKey | default $secretKey }}
+
+
+    {{- $state := dict
+      "name" $name
+      "clusterName" $clusterName
+      "enabled" $enabled
+      "managementPolicies" $managementPolicies
+      "labels" $labels
+      "tags" $tags
+      "kubernetesProviderConfigRef" $kubernetesProviderConfigRef
+      "crossplane" (dict
+        "namespace" $cpNamespace
+      )
+      "package" (dict
+        "name" $packageName
+        "version" $packageVersion
+        "skipDependencyResolution" $skipDependencyResolution
+      )
+      "runtimeConfig" $runtimeConfig
+      "nodePool" (dict
+        "enabled" $nodePoolEnabled
+      )
+      "scheduling" (dict
+        "enabled" $schedulingEnabled
+        "nodeSelector" $nodeSelector
+        "tolerations" $tolerations
+      )
+      "provider" (dict
+        "id" "openpanel"
+        "objectName" "provider-openpanel"
+        "manifestName" "provider-openpanel"
+        "runtimeConfigName" (printf "%s-openpanel" $clusterName)
+      )
+      "observed" (dict)
+      "status" (dict)
+    }}
+    {{- if eq "openpanel" "zitadel" }}
+      {{- $state = set $state "provider" (merge $state.provider (dict "runtimeConfigName" "zitadel")) }}
+    {{- end }}
+
+    {{- $state = set $state "providerConfig" (dict
+      "name" $providerConfigName
+      "namespace" $providerConfigNamespace
+      "secretName" $secretName
+      "secretNamespace" $secretNamespace
+      "secretKey" $secretKey
+      "render" (ne $secretName "")
+    ) }}
+    {{- $state = set $state "externalSecret" (dict
+      "enabled" $externalSecretEnabled
+      "remoteKey" $externalSecretRemoteKey
+      "secretStoreName" $externalSecretStoreName
+      "secretStoreKind" $externalSecretStoreKind
+      "targetKey" $externalSecretTargetKey
+    ) }}

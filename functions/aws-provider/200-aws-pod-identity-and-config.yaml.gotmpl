@@ -1,0 +1,73 @@
+# code: language=yaml
+{{- if $state.enabled }}
+---
+apiVersion: aws.hops.ops.com.ai/v1alpha1
+kind: PodIdentity
+metadata:
+  name: pod-identity
+  annotations:
+    {{ setResourceNameAnnotation "pod-identity" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  clusterName: {{ $state.aws.clusterName }}
+  region: {{ $state.aws.region }}
+  providerConfigRef:
+    name: {{ $state.awsProviderConfigRef.name }}
+    kind: {{ $state.awsProviderConfigRef.kind }}
+  {{- if $state.aws.rolePrefix }}
+  rolePrefix: {{ $state.aws.rolePrefix }}
+  {{- end }}
+  {{- if $state.aws.permissionsBoundary }}
+  permissionsBoundaryArn: {{ $state.aws.permissionsBoundary }}
+  {{- end }}
+  serviceAccount:
+    name: {{ $state.podIdentity.saName }}
+    namespace: {{ $state.podIdentity.saNamespace }}
+  managedPolicyArns:
+    - arn:aws:iam::aws:policy/AdministratorAccess
+  tags: {{ $state.aws.tags | toJson }}
+---
+apiVersion: protection.crossplane.io/v1beta1
+kind: Usage
+metadata:
+  name: delete-aws-before-pod-identity
+  annotations:
+    {{ setResourceNameAnnotation "usage-pod-identity" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  of:
+    apiVersion: aws.hops.ops.com.ai/v1alpha1
+    kind: PodIdentity
+    resourceRef:
+      name: pod-identity
+  by:
+    apiVersion: kubernetes.m.crossplane.io/v1alpha1
+    kind: Object
+    resourceRef:
+      name: provider-family-aws
+  replayDeletion: true
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+  name: providerconfig-aws
+  annotations:
+    {{ setResourceNameAnnotation "providerconfig-aws" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    manifest:
+      apiVersion: aws.m.upbound.io/v1beta1
+      kind: ProviderConfig
+      metadata:
+        name: {{ $state.provider.configName }}
+        namespace: default
+      spec:
+        credentials:
+          source: PodIdentity
+  providerConfigRef:
+    name: {{ $state.kubernetesProviderConfigRef.name }}
+    kind: {{ $state.kubernetesProviderConfigRef.kind }}
+{{- end }}

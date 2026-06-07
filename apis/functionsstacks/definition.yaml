@@ -1,0 +1,122 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: functionsstacks.crossplane.hops.ops.com.ai
+spec:
+  group: crossplane.hops.ops.com.ai
+  names:
+    kind: FunctionsStack
+    plural: functionsstacks
+  scope: Namespaced
+  defaultCompositeDeletePolicy: Foreground
+  versions:
+  - name: v1alpha1
+    referenceable: true
+    served: true
+    schema:
+      openAPIV3Schema:
+        description: Installs Crossplane Function packages plus their DeploymentRuntimeConfigs in the target Crossplane cluster.
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - clusterName
+            properties:
+              clusterName:
+                description: Target cluster name. Used as the default for management ProviderConfig references.
+                type: string
+              managementPolicies:
+                type: array
+                items:
+                  type: string
+                default: ["*"]
+              labels:
+                type: object
+                additionalProperties:
+                  type: string
+                x-kubernetes-preserve-unknown-fields: true
+              tags:
+                type: object
+                additionalProperties:
+                  type: string
+                x-kubernetes-preserve-unknown-fields: true
+              kubernetesProviderConfigRef:
+                description: Management-plane Kubernetes ProviderConfig targeting the cluster where Crossplane is installed.
+                type: object
+                properties:
+                  name:
+                    type: string
+                  kind:
+                    type: string
+                    enum: [ProviderConfig, ClusterProviderConfig]
+              crossplaneNamespace:
+                description: Namespace where target Crossplane is installed. Defaults to crossplane-system.
+                type: string
+              nodePool:
+                description: Schedule function runtimes onto the CrossplaneStack NodePool. This does not create or rename the NodePool; CrossplaneStack defaults it to hops-crossplane. Applies to every function unless overridden by scheduling.
+                type: object
+                properties:
+                  enabled:
+                    description: Use the CrossplaneStack NodePool selector and toleration for all function runtimes.
+                    type: boolean
+              scheduling:
+                description: Optional placement overrides applied to all function runtimes. When nodePool.enabled is true, these override the CrossplaneStack NodePool selector or toleration defaults.
+                type: object
+                properties:
+                  nodeSelector:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    x-kubernetes-preserve-unknown-fields: true
+                  tolerations:
+                    type: array
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+              functions:
+                description: >-
+                  Crossplane Function packages to install on the target Crossplane control plane, keyed by a
+                  short logical name. Each entry renders one Function package and one DeploymentRuntimeConfig.
+                  When omitted, function-auto-ready is installed by default.
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    enabled:
+                      description: Install this function. Defaults to true.
+                      type: boolean
+                    package:
+                      description: Function package path without the version tag (e.g. xpkg.crossplane.io/crossplane-contrib/function-auto-ready).
+                      type: string
+                    version:
+                      description: Function package version tag (e.g. v0.6.0).
+                      type: string
+                    skipDependencyResolution:
+                      description: Defaults to true.
+                      type: boolean
+                    runtimeConfig:
+                      description: Resource requests and limits for this function's runtime.
+                      type: object
+                      properties:
+                        cpu:
+                          type: string
+                        memory:
+                          type: string
+                        requestsCpu:
+                          type: string
+                        requestsMemory:
+                          type: string
+          status:
+            type: object
+            properties:
+              ready:
+                type: boolean
+              functions:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    ready:
+                      type: boolean
+        required: [spec]

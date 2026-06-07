@@ -31,11 +31,26 @@ jobs:
     with:
       examples: |
         [
-          { "example": "examples/crossplanestacks/minimal.yaml" },
-          { "example": "examples/crossplanestacks/standard.yaml" },
-          { "example": "examples/crossplanestacks/full.yaml" }
+          { "example": "examples/crossplanestacks/minimal.yaml", "api_path": "apis/crossplanestacks" },
+          { "example": "examples/crossplanestacks/standard.yaml", "api_path": "apis/crossplanestacks" },
+          { "example": "examples/crossplanestacks/full.yaml", "api_path": "apis/crossplanestacks" },
+          { "example": "examples/awsproviderstacks/minimal.yaml", "api_path": "apis/awsproviderstacks" },
+          { "example": "examples/awsproviderstacks/full.yaml", "api_path": "apis/awsproviderstacks" },
+          { "example": "examples/functionsstacks/minimal.yaml", "api_path": "apis/functionsstacks" },
+          { "example": "examples/functionsstacks/full.yaml", "api_path": "apis/functionsstacks" },
+          { "example": "examples/githubproviderstacks/minimal.yaml", "api_path": "apis/githubproviderstacks" },
+          { "example": "examples/githubproviderstacks/full.yaml", "api_path": "apis/githubproviderstacks" },
+          { "example": "examples/helmproviderstacks/minimal.yaml", "api_path": "apis/helmproviderstacks" },
+          { "example": "examples/helmproviderstacks/full.yaml", "api_path": "apis/helmproviderstacks" },
+          { "example": "examples/kubernetesproviderstacks/minimal.yaml", "api_path": "apis/kubernetesproviderstacks" },
+          { "example": "examples/kubernetesproviderstacks/full.yaml", "api_path": "apis/kubernetesproviderstacks" },
+          { "example": "examples/listmonkproviderstacks/minimal.yaml", "api_path": "apis/listmonkproviderstacks" },
+          { "example": "examples/listmonkproviderstacks/full.yaml", "api_path": "apis/listmonkproviderstacks" },
+          { "example": "examples/openpanelproviderstacks/minimal.yaml", "api_path": "apis/openpanelproviderstacks" },
+          { "example": "examples/openpanelproviderstacks/full.yaml", "api_path": "apis/openpanelproviderstacks" },
+          { "example": "examples/zitadelproviderstacks/minimal.yaml", "api_path": "apis/zitadelproviderstacks" },
+          { "example": "examples/zitadelproviderstacks/full.yaml", "api_path": "apis/zitadelproviderstacks" }
         ]
-      api_path: apis/crossplanestacks
       error_on_missing_schemas: true
 
   test:

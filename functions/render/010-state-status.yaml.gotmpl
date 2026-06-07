@@ -2,11 +2,19 @@
 {{- $obs := $state.observed }}
 
 {{- $cpReady := $obs.crossplane.ready | default false }}
-{{- $awsReady := $obs.awsProvider.ready | default false }}
-{{- $k8sReady := $obs.k8sProvider.ready | default false }}
-{{- $helmReady := $obs.helmProvider.ready | default false }}
-{{- $ghReady := $obs.githubProvider.ready | default false }}
-{{- $zitReady := $obs.zitadelProvider.ready | default false }}
+{{- $nodePoolReady := true }}
+{{- $nodePoolStatus := dict
+  "enabled" $state.nodePool.enabled
+  "ready" $nodePoolReady
+}}
+{{- if $state.nodePool.enabled }}
+  {{- $nodePoolReady = $obs.nodePool.ready | default false }}
+  {{- $nodePoolStatus = dict
+    "enabled" true
+    "ready" $nodePoolReady
+    "name" $state.nodePool.name
+  }}
+{{- end }}
 
 {{- /* Overall readiness is managed by function-auto-ready */ -}}
 {{- $state = set $state "status" (dict
@@ -14,22 +22,8 @@
   "crossplane" (dict
     "ready" $cpReady
     "namespace" $state.crossplane.namespace
+    "releaseName" $state.crossplane.releaseName
+    "chartVersion" "2.2.0"
   )
-  "providers" (dict
-    "aws" (dict
-      "ready" $awsReady
-    )
-    "kubernetes" (dict
-      "ready" $k8sReady
-    )
-    "helm" (dict
-      "ready" $helmReady
-    )
-    "github" (dict
-      "ready" $ghReady
-    )
-    "zitadel" (dict
-      "ready" $zitReady
-    )
-  )
+  "nodePool" $nodePoolStatus
 ) }}

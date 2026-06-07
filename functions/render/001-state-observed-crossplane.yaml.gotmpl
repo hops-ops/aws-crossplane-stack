@@ -17,3 +17,18 @@
   "ready" $cpReady
   "state" ($atProvider.state | default "")
 ))) }}
+
+{{- /* Optional Crossplane NodePool Object */ -}}
+{{- $nodePoolEntry := get $raw "nodepool-crossplane" | default dict }}
+{{- $nodePoolResource := $nodePoolEntry.resource | default dict }}
+{{- $nodePoolStatus := $nodePoolResource.status | default dict }}
+{{- $nodePoolReady := false }}
+{{- range ($nodePoolStatus.conditions | default list) }}
+  {{- if and (eq .type "Ready") (eq .status "True") }}
+    {{- $nodePoolReady = true }}
+  {{- end }}
+{{- end }}
+
+{{- $state = set $state "observed" (merge $state.observed (dict "nodePool" (dict
+  "ready" $nodePoolReady
+))) }}
