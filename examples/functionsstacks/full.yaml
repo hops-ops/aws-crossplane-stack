@@ -13,7 +13,7 @@ spec:
   functions:
     autoReady:
       package: xpkg.crossplane.io/crossplane-contrib/function-auto-ready
-      version: v0.6.5
+      version: v0.7.0
       runtimeConfig:
         requestsCpu: 15m
         requestsMemory: 100Mi
