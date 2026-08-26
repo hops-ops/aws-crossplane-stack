@@ -128,6 +128,19 @@ spec:
                     type: string
                   targetKey:
                     type: string
+                  githubApp:
+                    description: Optional GitHub App fields used to assemble provider credentials from one AWS Secrets Manager secret.
+                    type: object
+                    properties:
+                      appIdKey:
+                        description: JSON key containing the GitHub App ID. Defaults to GH_APP_ID.
+                        type: string
+                      installationIdKey:
+                        description: JSON key containing the GitHub App installation ID. Defaults to GH_APP_INSTALLATION_ID.
+                        type: string
+                      privateKeyKey:
+                        description: JSON key containing the GitHub App private key. Defaults to GH_APP_KEY.
+                        type: string
               githubOrg:
                 description: GitHub organization used for the GITHUB_OWNER environment variable.
                 type: string
