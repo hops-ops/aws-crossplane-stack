@@ -16,9 +16,9 @@
   }}
 {{- end }}
 
-{{- /* Overall readiness is managed by function-auto-ready */ -}}
+{{- $ready := and $cpReady $nodePoolReady }}
 {{- $state = set $state "status" (dict
-  "ready" false
+  "ready" $ready
   "crossplane" (dict
     "ready" $cpReady
     "namespace" $state.crossplane.namespace
