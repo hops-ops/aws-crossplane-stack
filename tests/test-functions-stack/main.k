@@ -47,7 +47,7 @@ _items = [
                         kind = "Function"
                         metadata.name = "crossplane-contrib-function-auto-ready"
                         spec = {
-                            package = "xpkg.crossplane.io/crossplane-contrib/function-auto-ready:v0.6.5"
+                            package = "xpkg.crossplane.io/crossplane-contrib/function-auto-ready:v0.7.0"
                             skipDependencyResolution = True
                             runtimeConfigRef.name = "crossplane-contrib-function-auto-ready"
                         }

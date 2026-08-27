@@ -77,6 +77,8 @@
 {{- $externalSecretStoreName := $externalSecret.secretStoreName | default "default" }}
 {{- $externalSecretStoreKind := $externalSecret.secretStoreKind | default "ClusterSecretStore" }}
 {{- $externalSecretTargetKey := $externalSecret.targetKey | default $secretKey }}
+{{- $githubAppSpec := $externalSecret.githubApp | default dict }}
+{{- $githubAppEnabled := hasKey $externalSecret "githubApp" }}
 
 
 {{- $githubOrg := $spec.githubOrg | default ($legacy.githubOrg | default "") }}
@@ -132,6 +134,12 @@
       "secretStoreName" $externalSecretStoreName
       "secretStoreKind" $externalSecretStoreKind
       "targetKey" $externalSecretTargetKey
+      "githubApp" (dict
+        "enabled" $githubAppEnabled
+        "appIdKey" ($githubAppSpec.appIdKey | default "GH_APP_ID")
+        "installationIdKey" ($githubAppSpec.installationIdKey | default "GH_APP_INSTALLATION_ID")
+        "privateKeyKey" ($githubAppSpec.privateKeyKey | default "GH_APP_KEY")
+      )
     ) }}
 
     {{- $state = set $state "github" (dict "org" $githubOrg) }}

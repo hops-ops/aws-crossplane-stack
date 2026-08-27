@@ -1,7 +1,7 @@
 # code: language=yaml
 {{- $providerReady := $state.observed.provider.ready | default false }}
 {{- $status := dict
-  "ready" false
+  "ready" $providerReady
   "provider" (dict
     "ready" $providerReady
   )

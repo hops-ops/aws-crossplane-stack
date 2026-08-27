@@ -38,7 +38,7 @@
 
     {{- $pkg := $spec.package | default dict }}
     {{- $packageName := $pkg.name | default "xpkg.crossplane.io/crossplane-contrib/provider-helm" }}
-    {{- $packageVersion := $pkg.version | default "v1.2.0" }}
+    {{- $packageVersion := $pkg.version | default "v1.4.0" }}
     {{- $skipDependencyResolution := true }}
     {{- if hasKey $pkg "skipDependencyResolution" }}
       {{- $skipDependencyResolution = $pkg.skipDependencyResolution }}

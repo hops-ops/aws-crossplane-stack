@@ -10,7 +10,11 @@ spec:
   githubOrg: hops-ops
   secretName: github-token
   externalSecret:
-    remoteKey: github-provider-token
+    remoteKey: github/hops-gitops
+    githubApp:
+      appIdKey: GH_APP_ID
+      installationIdKey: GH_APP_INSTALLATION_ID
+      privateKeyKey: GH_APP_KEY
   runtimeConfig:
     requestsCpu: 100m
     requestsMemory: 256Mi
