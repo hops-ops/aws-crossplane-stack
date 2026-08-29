@@ -38,6 +38,7 @@
 
     {{- $pkg := $spec.package | default dict }}
     {{- $packageName := $pkg.name | default "xpkg.crossplane.io/crossplane-contrib/provider-helm" }}
+    # renovate: datasource=docker depName=crossplane-contrib/provider-helm registryUrl=https://xpkg.crossplane.io
     {{- $packageVersion := $pkg.version | default "v1.4.0" }}
     {{- $skipDependencyResolution := true }}
     {{- if hasKey $pkg "skipDependencyResolution" }}

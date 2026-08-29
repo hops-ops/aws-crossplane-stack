@@ -1,6 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended", ":dependencyDashboard"],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/bower_components/**",
+    "**/vendor/**",
+    "**/examples/**",
+    "**/__tests__/**",
+    "**/test/**",
+    "**/__fixtures__/**"
+  ],
   "crossplane": {
     "managerFilePatterns": ["/\\.yaml$/", "/\\.yaml\\.gotmpl$/"]
   },
@@ -20,6 +29,12 @@
       "description": "Group all AWS provider packages together for batched updates",
       "matchPackageNames": ["/provider-family-aws/", "/provider-aws-.*/"],
       "groupName": "aws-providers"
+    },
+    {
+      "description": "Require manual review for Crossplane core upgrades",
+      "matchDatasources": ["helm"],
+      "matchPackageNames": ["crossplane"],
+      "automerge": false
     },
     {
       "description": "Use feat(deps): commit prefix for hops-ops Crossplane packages (github-releases datasource)",
@@ -55,6 +70,42 @@
         "package\\s*=\\s*\"ghcr\\.io/(?<depName>hops-ops/[^:]+):v?(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "github-releases",
+      "packageNameTemplate": "{{depName}}"
+    },
+    {
+      "customType": "regex",
+      "description": "Annotated provider runtime defaults",
+      "managerFilePatterns": ["functions/*-provider/000-state-init.yaml.gotmpl"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: registryUrl=(?<registryUrl>\\S+))?\\s+\\{\\{- \\$packageVersion := \\$pkg\\.version \\| default \\\"(?<currentValue>[^\\\"]+)\\\" \\}\\}"
+      ]
+    },
+    {
+      "customType": "regex",
+      "description": "Crossplane Helm chart runtime and test defaults",
+      "managerFilePatterns": [
+        "functions/render/010-state-status.yaml.gotmpl",
+        "functions/render/100-crossplane-helm-release.yaml.gotmpl",
+        "tests/test-render/main.k"
+      ],
+      "matchStrings": [
+        "version:\\s+(?<currentValue>\\d+\\.\\d+\\.\\d+)",
+        "\\\"chartVersion\\\"\\s+\\\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\\\"",
+        "version\\s+=\\s+\\\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\\\""
+      ],
+      "datasourceTemplate": "helm",
+      "depNameTemplate": "crossplane",
+      "registryUrlTemplate": "https://charts.crossplane.io/stable"
+    },
+    {
+      "customType": "regex",
+      "description": "External provider package assertions in render tests",
+      "managerFilePatterns": ["tests/test-*-provider-stack/main.k"],
+      "matchStrings": [
+        "package\\s*=\\s*\\\"xpkg\\.crossplane\\.io/(?<depName>[^:\\\"\\s]+):(?<currentValue>[^\\\"]+)\\\""
+      ],
+      "datasourceTemplate": "docker",
+      "registryUrlTemplate": "https://xpkg.crossplane.io",
       "packageNameTemplate": "{{depName}}"
     },
     {

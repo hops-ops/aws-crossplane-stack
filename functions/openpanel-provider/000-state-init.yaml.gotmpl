@@ -38,6 +38,7 @@
 
     {{- $pkg := $spec.package | default dict }}
     {{- $packageName := $pkg.name | default "ghcr.io/hops-ops/provider-openpanel" }}
+    # renovate: datasource=github-releases depName=hops-ops/provider-openpanel
     {{- $packageVersion := $pkg.version | default "v1.1.1" }}
     {{- $skipDependencyResolution := true }}
     {{- if hasKey $pkg "skipDependencyResolution" }}
