@@ -39,7 +39,7 @@ _items = [
                         kind = "Provider"
                         metadata.name = "crossplane-contrib-provider-kubernetes"
                         spec = {
-                            package = "xpkg.crossplane.io/crossplane-contrib/provider-kubernetes:v1.3.0"
+                            package = "xpkg.crossplane.io/crossplane-contrib/provider-kubernetes:v1.3.1"
                             skipDependencyResolution = True
                         }
                     }
