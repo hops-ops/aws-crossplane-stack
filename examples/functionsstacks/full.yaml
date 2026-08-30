@@ -21,7 +21,7 @@ spec:
     patchAndTransform:
       package: xpkg.crossplane.io/crossplane-contrib/function-patch-and-transform
       # renovate: datasource=docker depName=crossplane-contrib/function-patch-and-transform registryUrl=https://xpkg.crossplane.io
-      version: v0.9.0
+      version: v0.10.10
       runtimeConfig:
         requestsCpu: 50m
         requestsMemory: 256Mi
