@@ -24,6 +24,21 @@ _items = [
             }
             assertResources = [
                 {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "sa-aws"
+                    spec.forProvider.manifest = {
+                        kind = "ServiceAccount"
+                        metadata = {name = "my-cluster-crossplane-aws", namespace = "crossplane-system"}
+                    }
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "drc-aws"
+                    spec.forProvider.manifest.spec.deploymentTemplate.spec.template.spec.serviceAccountName = "my-cluster-crossplane-aws"
+                }
+                {
                     apiVersion = "aws.hops.ops.com.ai/v1alpha1"
                     kind = "PodIdentity"
                     metadata.name = "pod-identity"

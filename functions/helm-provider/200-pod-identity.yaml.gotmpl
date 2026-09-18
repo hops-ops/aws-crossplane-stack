@@ -1,0 +1,60 @@
+# code: language=yaml
+{{- if and $state.enabled $state.aws.enabled }}
+---
+apiVersion: aws.hops.ops.com.ai/v1alpha1
+kind: PodIdentity
+metadata:
+  name: {{ $state.name }}-helm-ecr
+  annotations:
+    {{ setResourceNameAnnotation "helm-pod-identity" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  clusterName: {{ $state.clusterName }}
+  region: {{ $state.aws.region | quote }}
+  providerConfigRef: {{ $state.aws.providerConfigRef | toJson }}
+  serviceAccount:
+    name: {{ $state.provider.runtimeConfigName }}
+    namespace: {{ $state.crossplane.namespace }}
+  inlinePolicy:
+    - name: pull-ecr-charts
+      policy: |
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "ecr:GetAuthorizationToken",
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": ["ecr:BatchCheckLayerAvailability", "ecr:GetDownloadUrlForLayer", "ecr:BatchGetImage"],
+              "Resource": {{ $state.aws.ecrRepositoryArns | toJson }}
+            }
+          ]
+        }
+  tags: {{ $state.tags | toJson }}
+{{- if and $state.observed.provider.ready $state.observed.podIdentity.ready }}
+---
+apiVersion: protection.crossplane.io/v1beta1
+kind: Usage
+metadata:
+  name: {{ $state.name }}-delete-helm-provider-before-pod-identity
+  annotations:
+    {{ setResourceNameAnnotation "usage-helm-pod-identity" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  replayDeletion: true
+  of:
+    apiVersion: aws.hops.ops.com.ai/v1alpha1
+    kind: PodIdentity
+    resourceRef:
+      name: {{ $state.name }}-helm-ecr
+  by:
+    apiVersion: kubernetes.m.crossplane.io/v1alpha1
+    kind: Object
+    resourceRef:
+      name: provider-helm
+{{- end }}
+{{- end }}

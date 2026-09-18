@@ -41,9 +41,6 @@ spec:
                 nodeSelector: {{ $state.scheduling.nodeSelector | toJson }}
                 tolerations: {{ $state.scheduling.tolerations | toJson }}
                 {{- end }}
-        serviceAccountTemplate:
-          metadata:
-            name: {{ $fn.name }}
   providerConfigRef:
     name: {{ $state.kubernetesProviderConfigRef.name }}
     kind: {{ $state.kubernetesProviderConfigRef.kind }}

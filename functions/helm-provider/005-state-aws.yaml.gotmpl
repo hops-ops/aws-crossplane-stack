@@ -1,0 +1,19 @@
+# code: language=yaml
+{{- $aws := $spec.aws | default dict }}
+{{- $awsConfig := $aws.providerConfigRef | default dict }}
+{{- $state = set $state "aws" (dict
+  "enabled" ($aws.enabled | default false)
+  "region" ($aws.region | default "")
+  "ecrRepositoryArns" ($aws.ecrRepositoryArns | default list)
+  "providerConfigRef" (dict
+    "name" ($awsConfig.name | default $state.clusterName)
+    "kind" ($awsConfig.kind | default "ProviderConfig")
+  )
+) }}
+{{- $entry := get ($.observed.resources | default dict) "helm-pod-identity" | default dict }}
+{{- $resource := $entry.resource | default dict }}
+{{- $ready := false }}
+{{- range ($resource.status | default dict).conditions | default list }}
+{{- if and (eq .type "Ready") (eq .status "True") }}{{- $ready = true }}{{- end }}
+{{- end }}
+{{- $state = set $state "observed" (merge $state.observed (dict "podIdentity" (dict "ready" $ready))) }}
