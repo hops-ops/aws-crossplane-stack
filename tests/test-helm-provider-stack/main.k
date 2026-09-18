@@ -217,12 +217,12 @@ items = _items + [
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata = {
-                        name = name
+                        name = resourceName
                         namespace = "default"
-                        annotations = {"crossplane.io/composition-resource-name" = name}
+                        annotations = {"crossplane.io/composition-resource-name" = resourceName}
                     }
                     status.conditions = [{type = "Ready", status = "True"}]
-                } for name in ["sa-helm", "provider-helm"]
+                } for resourceName in ["sa-helm", "provider-helm"]
             ]
             assertResources = [
                 {
