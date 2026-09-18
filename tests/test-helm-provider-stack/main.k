@@ -28,6 +28,16 @@ _items = [
                     spec.forProvider.manifest = {
                         apiVersion = "pkg.crossplane.io/v1beta1"
                         kind = "DeploymentRuntimeConfig"
+                        spec.deploymentTemplate.spec.template.spec.serviceAccountName = "my-cluster-helm"
+                    }
+                }
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata.name = "sa-helm"
+                    spec.forProvider.manifest = {
+                        kind = "ServiceAccount"
+                        metadata = {name = "my-cluster-helm", namespace = "crossplane-system"}
                     }
                 }
                 {
@@ -150,4 +160,43 @@ _items = [
     }
 ]
 
-items = _items
+items = _items + [
+    metav1alpha1.CompositionTest {
+        metadata.name = "account-outlives-ready-provider"
+        spec = {
+            compositionPath = _composition
+            xrdPath = _xrd
+            timeoutSeconds = 60
+            validate = False
+            xr = {
+                apiVersion = "crossplane.hops.ops.com.ai/v1alpha1"
+                kind = "HelmProviderStack"
+                metadata.name = "helm"
+                spec.clusterName = "my-cluster"
+            }
+            observedResources = [
+                {
+                    apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
+                    kind = "Object"
+                    metadata = {
+                        name = name
+                        annotations = {"crossplane.io/composition-resource-name" = name}
+                    }
+                    status.conditions = [{type = "Ready", status = "True"}]
+                } for name in ["sa-helm", "provider-helm"]
+            ]
+            assertResources = [
+                {
+                    apiVersion = "protection.crossplane.io/v1beta1"
+                    kind = "Usage"
+                    metadata.name = "delete-provider-helm-before-sa-helm"
+                    spec = {
+                        of.resourceRef.name = "sa-helm"
+                        by.resourceRef.name = "provider-helm"
+                        replayDeletion = True
+                    }
+                }
+            ]
+        }
+    }
+]

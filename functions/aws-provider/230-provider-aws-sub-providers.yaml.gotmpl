@@ -32,6 +32,7 @@ spec:
             selector: {}
             template:
               spec:
+                serviceAccountName: {{ $state.podIdentity.saName }}
                 containers:
                 - name: package-runtime
                   resources:
@@ -51,9 +52,6 @@ spec:
                 nodeSelector: {{ $state.scheduling.nodeSelector | toJson }}
                 tolerations: {{ $state.scheduling.tolerations | toJson }}
                 {{- end }}
-        serviceAccountTemplate:
-          metadata:
-            name: {{ $state.podIdentity.saName }}
   providerConfigRef:
     name: {{ $state.kubernetesProviderConfigRef.name }}
     kind: {{ $state.kubernetesProviderConfigRef.kind }}
