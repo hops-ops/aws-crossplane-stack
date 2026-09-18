@@ -1,7 +1,7 @@
 # code: language=yaml
 {{- $providerReady := $state.observed.provider.ready | default false }}
 {{- $status := dict
-  "ready" $providerReady
+  "ready" (and $providerReady (or (not $state.aws.enabled) $state.observed.podIdentity.ready))
   "provider" (dict
     "ready" $providerReady
   )

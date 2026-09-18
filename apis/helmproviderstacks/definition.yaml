@@ -78,6 +78,32 @@ spec:
                     type: string
                   requestsMemory:
                     type: string
+              aws:
+                description: Optional EKS Pod Identity for private ECR chart pulls.
+                type: object
+                x-kubernetes-validations:
+                - rule: "!has(self.enabled) || !self.enabled || (has(self.region) && has(self.ecrRepositoryArns) && size(self.ecrRepositoryArns) > 0)"
+                  message: AWS chart access requires region and at least one ECR repository ARN.
+                properties:
+                  enabled:
+                    type: boolean
+                    default: false
+                  region:
+                    type: string
+                    minLength: 1
+                  ecrRepositoryArns:
+                    type: array
+                    items:
+                      type: string
+                      pattern: '^arn:[^:]+:ecr:[^:]+:[0-9]{12}:repository/.+$'
+                  providerConfigRef:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      kind:
+                        type: string
+                        enum: [ProviderConfig, ClusterProviderConfig]
               nodePool:
                 description: Schedule this provider runtime onto the CrossplaneStack NodePool. This does not create or rename the NodePool; CrossplaneStack defaults it to hops-crossplane.
                 type: object

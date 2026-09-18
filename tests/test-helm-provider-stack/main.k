@@ -162,6 +162,43 @@ _items = [
 
 items = _items + [
     metav1alpha1.CompositionTest {
+        metadata.name = "ecr-identity-uses-runtime-account-and-aws-config"
+        spec = {
+            compositionPath = _composition
+            xrdPath = _xrd
+            timeoutSeconds = 60
+            validate = False
+            xr = {
+                apiVersion = "crossplane.hops.ops.com.ai/v1alpha1"
+                kind = "HelmProviderStack"
+                metadata.name = "helm"
+                spec = {
+                    clusterName = "my-cluster"
+                    crossplaneNamespace = "custom-crossplane"
+                    aws = {
+                        enabled = True
+                        region = "us-east-2"
+                        providerConfigRef = {name = "aws-admin", kind = "ClusterProviderConfig"}
+                        ecrRepositoryArns = ["arn:aws:ecr:us-east-2:123456789012:repository/team/charts/*"]
+                    }
+                }
+            }
+            assertResources = [
+                {
+                    apiVersion = "aws.hops.ops.com.ai/v1alpha1"
+                    kind = "PodIdentity"
+                    metadata.name = "helm-helm-ecr"
+                    spec = {
+                        clusterName = "my-cluster"
+                        region = "us-east-2"
+                        providerConfigRef = {name = "aws-admin", kind = "ClusterProviderConfig"}
+                        serviceAccount = {name = "my-cluster-helm", namespace = "custom-crossplane"}
+                    }
+                }
+            ]
+        }
+    }
+    metav1alpha1.CompositionTest {
         metadata.name = "account-outlives-ready-provider"
         spec = {
             compositionPath = _composition
@@ -173,6 +210,7 @@ items = _items + [
                 kind = "HelmProviderStack"
                 metadata.name = "helm"
                 spec.clusterName = "my-cluster"
+                metadata.namespace = "default"
             }
             observedResources = [
                 {
@@ -180,6 +218,7 @@ items = _items + [
                     kind = "Object"
                     metadata = {
                         name = name
+                        namespace = "default"
                         annotations = {"crossplane.io/composition-resource-name" = name}
                     }
                     status.conditions = [{type = "Ready", status = "True"}]

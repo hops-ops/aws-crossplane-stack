@@ -5,6 +5,14 @@ metadata:
   namespace: default
 spec:
   clusterName: my-cluster
+  aws:
+    enabled: true
+    region: us-east-2
+    providerConfigRef:
+      name: my-cluster
+      kind: ProviderConfig
+    ecrRepositoryArns:
+      - arn:aws:ecr:us-east-2:123456789012:repository/team/charts/*
   kubernetesProviderConfigRef:
     name: my-cluster
   runtimeConfig:
