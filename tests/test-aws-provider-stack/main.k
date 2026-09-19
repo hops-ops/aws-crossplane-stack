@@ -53,7 +53,7 @@ _items = [
                     kind = "Object"
                     metadata.name = "provider-family-aws"
                     spec.forProvider.manifest.spec = {
-                        package = "xpkg.crossplane.io/crossplane-contrib/provider-family-aws:v2.7.0"
+                        package = "xpkg.crossplane.io/crossplane-contrib/provider-family-aws:v2.8.0"
                         skipDependencyResolution = True
                         runtimeConfigRef.name = "my-cluster-aws"
                     }
@@ -62,13 +62,13 @@ _items = [
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "provider-aws-iam"
-                    spec.forProvider.manifest.spec.package = "xpkg.crossplane.io/crossplane-contrib/provider-aws-iam:v2.7.0"
+                    spec.forProvider.manifest.spec.package = "xpkg.crossplane.io/crossplane-contrib/provider-aws-iam:v2.8.0"
                 }
                 {
                     apiVersion = "kubernetes.m.crossplane.io/v1alpha1"
                     kind = "Object"
                     metadata.name = "provider-aws-s3"
-                    spec.forProvider.manifest.spec.package = "xpkg.crossplane.io/crossplane-contrib/provider-aws-s3:v2.7.0"
+                    spec.forProvider.manifest.spec.package = "xpkg.crossplane.io/crossplane-contrib/provider-aws-s3:v2.8.0"
                 }
             ]
         }
