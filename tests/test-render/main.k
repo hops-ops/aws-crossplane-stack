@@ -29,7 +29,7 @@ _items = [
                             chart = {
                                 name = "crossplane"
                                 repository = "https://charts.crossplane.io/stable"
-                                version = "2.4.1"
+                                version = "2.4.2"
                             }
                             namespace = "crossplane-system"
                             values = {
