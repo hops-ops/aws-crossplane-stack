@@ -39,7 +39,7 @@ _items = [
                         kind = "Provider"
                         metadata.name = "crossplane-contrib-provider-upjet-zitadel"
                         spec = {
-                            package = "xpkg.crossplane.io/crossplane-contrib/provider-upjet-zitadel:v0.2.0"
+                            package = "xpkg.crossplane.io/crossplane-contrib/provider-upjet-zitadel:v0.3.0"
                             skipDependencyResolution = True
                         }
                     }
