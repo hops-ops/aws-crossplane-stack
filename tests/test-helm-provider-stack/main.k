@@ -49,7 +49,7 @@ _items = [
                         kind = "Provider"
                         metadata.name = "crossplane-contrib-provider-helm"
                         spec = {
-                            package = "xpkg.crossplane.io/crossplane-contrib/provider-helm:v1.4.0"
+                            package = "xpkg.crossplane.io/crossplane-contrib/provider-helm:v1.5.0"
                             skipDependencyResolution = True
                         }
                     }
