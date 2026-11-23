@@ -39,7 +39,7 @@ _items = [
                         kind = "Provider"
                         metadata.name = "crossplane-contrib-provider-upjet-github"
                         spec = {
-                            package = "xpkg.crossplane.io/crossplane-contrib/provider-upjet-github:v0.22.0"
+                            package = "xpkg.crossplane.io/crossplane-contrib/provider-upjet-github:v0.23.0"
                             skipDependencyResolution = True
                         }
                     }
