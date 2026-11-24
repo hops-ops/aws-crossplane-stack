@@ -111,8 +111,12 @@ spec:
             properties:
               ready:
                 type: boolean
-              crossplane:
+              crossplaneRelease:
                 type: object
+                description: >-
+                  Crossplane core Helm release installed by this stack. Named
+                  crossplaneRelease because Crossplane v2.5+ reserves
+                  status.crossplane on modern XRs.
                 properties:
                   ready:
                     type: boolean
